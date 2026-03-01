@@ -1,0 +1,290 @@
+# SEC Financial Data Extractor
+
+一个Python工具，用于通过SEC REST API获取美股财报数据，包括资产负债表、利润表和现金流量表。
+
+## 功能特性
+
+- ✅ **股票代码自动转换**：优先使用股票代码（如AAPL），内部自动转换为CIK
+- ✅ **多种时间过滤模式**：
+  - 特定年份（如2023年）
+  - 特定季度（如2023年Q4）
+  - 年份范围（如2020-2023年）
+  - 季度范围（如Q1 2022 - Q4 2023）
+- ✅ **智能指标匹配**：支持指标别名映射、部分匹配和基于单词的相似度匹配
+- ✅ **数据去重机制**：避免重复提取相同数据
+- ✅ **三表分离输出**：生成三个独立的CSV文件
+- ✅ **缓存机制**：减少重复API调用，提高效率
+- ✅ **命令行接口**：提供易用的CLI工具
+- ✅ **详细日志**：完整的操作日志和错误处理
+- ✅ **指标发现工具**：帮助查找特定公司的可用财务指标
+
+## 安装依赖
+
+项目使用Python 3.7+，需要以下依赖：
+
+```bash
+# 如果pip可用
+pip install requests pandas python-dateutil
+
+# 或者使用系统包管理器
+```
+
+## 项目结构
+
+```
+sec_financials/
+├── __init__.py              # 包初始化
+├── config.py               # 配置文件（API端点、指标映射等）
+├── client.py               # SEC API客户端
+├── ticker_mapper.py        # 股票代码↔CIK映射器
+├── data_extractor.py       # 财报数据提取器（包含智能匹配逻辑）
+├── time_processor.py       # 时间范围处理器
+├── csv_exporter.py         # CSV导出器
+├── main.py                 # 主程序/命令行接口
+├── test.py                 # 测试脚本
+└── requirements.txt        # 依赖包列表
+```
+
+## 使用方法
+
+### 命令行接口
+
+```bash
+# 获取特定年份数据
+python -m sec_financials.main fetch AAPL --year 2023
+
+# 获取特定季度数据
+python -m sec_financials.main fetch MSFT --year 2023 --quarter 4
+
+# 获取年份范围数据
+python -m sec_financials.main fetch GOOGL --start-year 2020 --end-year 2023
+
+# 获取季度范围数据
+python -m sec_financials.main fetch AMZN --start-year 2022 --start-quarter 1 --end-year 2023 --end-quarter 4
+
+# 使用累计数据（截至季度的9个月合计）
+python -m sec_financials.main fetch GOOG --year 2025 --quarter 3 --accumulated
+
+# 搜索股票代码
+python -m sec_financials.main search AAP --limit 5
+
+# 查看统计信息
+python -m sec_financials.main stats
+
+# 清除缓存
+python -m sec_financials.main clear-cache
+```
+
+### Python API
+
+```python
+from sec_financials import SECFinancialExtractor
+
+# 初始化提取器
+extractor = SECFinancialExtractor()
+
+# 获取财务数据
+result = extractor.fetch_financial_data(
+    ticker='AAPL',
+    year=2023,
+    output_dir='output'
+)
+
+# 搜索股票代码
+search_results = extractor.search_tickers('AAP', limit=5)
+
+# 获取统计信息
+stats = extractor.get_mapping_stats()
+
+# 获取公司可用指标
+available_indicators = extractor.get_available_indicators('GOOG')
+```
+
+## 输出文件
+
+对于每个请求，工具会生成：
+
+1. **三个CSV文件**：
+   - `{TICKER}_{YEAR}_Balance_Sheet.csv` - 资产负债表
+   - `{TICKER}_{YEAR}_Income_Statement.csv` - 利润表
+   - `{TICKER}_{YEAR}_Cash_Flow.csv` - 现金流量表
+
+2. **汇总报告**：
+   - `{TICKER}_export_summary.txt` - 导出汇总信息
+
+## 支持的GAAP指标
+
+### 资产负债表
+- Assets（资产）
+- Liabilities（负债）
+- StockholdersEquity（股东权益）
+- AssetsCurrent（流动资产）
+- LiabilitiesCurrent（流动负债）
+- CashAndCashEquivalentsAtCarryingValue（现金及现金等价物）
+- 等15个核心指标
+
+### 利润表
+- RevenueFromContractWithCustomerExcludingAssessedTax（收入）
+- NetIncomeLoss（净利润）
+- GrossProfit（毛利润）
+- OperatingIncomeLoss（营业利润）
+- EarningsPerShareBasic（基本每股收益）
+- EarningsPerShareDiluted（稀释每股收益）
+- CostOfGoodsAndServicesSold（营业成本）
+- ResearchAndDevelopmentExpense（研发费用）
+- SellingGeneralAndAdministrativeExpense（销售和一般行政费用）
+- IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest（税前利润）
+- IncomeTaxExpenseBenefit（所得税费用）
+- 等13个核心指标
+
+### 现金流量表
+- NetCashProvidedByUsedInOperatingActivities（经营活动现金流）
+- NetCashProvidedByUsedInInvestingActivities（投资活动现金流）
+- NetCashProvidedByUsedInFinancingActivities（融资活动现金流）
+- 等11个核心指标
+
+## 智能指标匹配系统
+
+### 解决的问题
+1. **时间数据混乱**：修复了年度数据和季度数据混合的问题
+2. **重复数据**：解决了多个配置指标匹配到同一个SEC指标的问题
+3. **指标缺失**：改进了指标匹配逻辑，提高指标发现率
+
+### 匹配策略
+1. **精确匹配**：直接匹配配置的指标名称
+2. **别名映射**：支持指标别名（如"Revenues"映射到"RevenueFromContractWithCustomerExcludingAssessedTax"）
+3. **部分匹配**：支持包含关系的匹配
+4. **基于单词的相似度匹配**：通过共同单词数量进行匹配
+
+### 数据去重
+当多个配置指标匹配到同一个实际SEC指标时，系统会自动去重，只保留第一个匹配的指标。
+
+## 配置说明
+
+在 `config.py` 中可以配置：
+
+- **SEC API端点**：默认使用SEC官方REST API
+- **用户代理**：必须设置有效的User-Agent（SEC API要求）
+- **速率限制**：默认10请求/秒（SEC推荐）
+- **缓存设置**：缓存过期时间、缓存目录等
+- **GAAP指标**：可以自定义需要提取的财务指标
+- **指标别名**：可以添加指标别名映射关系
+
+## 常见问题与解决方案
+
+### 1. 季度数据混入年度数据
+**问题**：获取年度数据时混入了季度数据
+**解决方案**：系统已修复时间过滤逻辑，确保只返回年度数据
+
+### 2. 重复数据行
+**问题**：同一指标出现多次
+**解决方案**：添加了数据去重机制，基于(日期, 实际指标, 值, Frame)进行去重
+
+### 3. 指标名称不匹配
+**问题**：不同公司使用不同的指标名称
+**解决方案**：使用智能指标匹配系统，支持多种匹配策略
+
+### 4. 单季度与累计数据混合
+**问题**：SEC API同时返回单季度数据（Three Months Ended）和截至该季度的累计数据（Nine Months Ended），导致每个指标都有双份
+**解决方案**：使用 `--accumulated` 开关参数控制数据选择：
+- 默认（不加参数）：仅输出单季度数据（Frame列包含季度标识，如CY2025Q3）
+- 添加 `--accumulated` 参数：仅输出累计数据（Frame列为空）
+
+### 5. 特定指标缺失
+**问题**：某些公司可能没有标准的指标名称
+**解决方案**：
+- 使用指标发现工具查找实际可用指标
+- 添加自定义指标别名
+- 使用部分匹配或基于单词的匹配
+
+## 指标发现工具
+
+```python
+# 查找特定公司的可用指标
+from sec_financials.client import SECClient
+from sec_financials.ticker_mapper import TickerMapper
+
+client = SECClient()
+mapper = TickerMapper()
+cik = mapper.get_cik('GOOG')
+company_data = client.get_company_facts(cik)
+
+# 查找所有利润表相关指标
+gaap_facts = company_data['facts']['us-gaap']
+for indicator in gaap_facts.keys():
+    label = gaap_facts[indicator].get('label', '')
+    if any(keyword in label for keyword in ['Income', 'Revenue', 'Expense', 'Profit']):
+        print(f'{indicator}: {label}')
+```
+
+## 测试
+
+运行测试脚本验证功能：
+
+```bash
+python sec_financials/test.py
+```
+
+测试包括：
+- 股票代码映射测试
+- 单年份数据获取测试
+- 单季度数据获取测试
+- 年份范围数据获取测试
+- 季度范围数据获取测试
+- 无效股票代码测试
+- 缓存操作测试
+- 指标匹配测试
+
+## 注意事项
+
+1. **网络连接**：需要能够访问SEC官网（https://www.sec.gov）
+2. **用户代理**：SEC API要求有效的User-Agent头
+3. **速率限制**：遵守SEC的API使用限制（10请求/秒）
+4. **数据延迟**：财报数据通常在季度结束后几周内可用
+5. **缓存目录**：默认在当前目录创建 `.sec_cache` 目录存储缓存数据
+6. **指标差异**：不同公司可能使用不同的指标名称，系统会尽力匹配
+
+## 故障排除
+
+### 常见问题
+
+1. **"Ticker not found"**：股票代码不存在或SEC数据库未收录
+2. **"No financial data found"**：指定时间段内无财报数据
+3. **网络连接错误**：检查网络连接和代理设置
+4. **API限制错误**：降低请求频率或等待后重试
+5. **指标匹配失败**：使用指标发现工具查看实际可用指标
+
+### 调试模式
+
+设置环境变量查看详细日志：
+
+```bash
+# Windows
+set LOG_LEVEL=DEBUG
+python -m sec_financials.main fetch AAPL --year 2023
+
+# Linux/Mac
+export LOG_LEVEL=DEBUG
+python -m sec_financials.main fetch AAPL --year 2023
+```
+
+## 更新日志
+
+### 2026-03-01 重要更新
+1. **添加累计数据开关**：新增 `--accumulated` 命令行参数，支持选择单季度数据或累计数据
+2. **修复时间过滤问题**：确保年度数据不混入季度数据
+3. **添加数据去重机制**：避免重复数据行
+4. **改进指标匹配系统**：支持别名映射、部分匹配和基于单词的匹配
+5. **添加指标发现工具**：帮助查找特定公司的可用指标
+6. **优化错误处理**：提供更详细的错误信息和调试信息
+
+### 2026-02-23 重要更新
+1. **修复时间过滤问题**：确保年度数据不混入季度数据
+2. **添加数据去重机制**：避免重复数据行
+3. **改进指标匹配系统**：支持别名映射、部分匹配和基于单词的匹配
+4. **添加指标发现工具**：帮助查找特定公司的可用指标
+5. **优化错误处理**：提供更详细的错误信息和调试信息
+
+## 许可证
+
+本项目仅供学习和研究使用，请遵守SEC的数据使用条款。
