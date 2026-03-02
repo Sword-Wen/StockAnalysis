@@ -36,3 +36,6 @@ Thumbs.db
 
 # SEC EDGAR data cache (if applicable)
 sec_financials/cache/
+
+# Output directory for financial data exports
+output/

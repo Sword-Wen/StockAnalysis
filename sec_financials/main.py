@@ -45,7 +45,7 @@ class SECFinancialExtractor:
         end_year: Optional[int] = None,
         start_quarter: Optional[int] = None,
         end_quarter: Optional[int] = None,
-        output_dir: str = ".",
+        output_dir: str = "output",
         format_for_csv: bool = True,
         accumulated: bool = False
     ) -> dict:
@@ -235,7 +235,7 @@ Examples:
     fetch_parser.add_argument('--end-quarter', type=int, choices=[1, 2, 3, 4],
                             help='End quarter for range (requires --end-year)')
     
-    fetch_parser.add_argument('--output-dir', default='.', help='Output directory for CSV files')
+    fetch_parser.add_argument('--output-dir', default='output', help='Output directory for CSV files')
     fetch_parser.add_argument('--user-agent', help='Custom User-Agent string for SEC API')
     fetch_parser.add_argument('--accumulated', action='store_true', 
                             help='Use accumulated data (Nine Months Ended) instead of quarterly data')
