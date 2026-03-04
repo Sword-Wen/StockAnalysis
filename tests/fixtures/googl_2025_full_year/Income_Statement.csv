@@ -1,0 +1,12 @@
+Date,Indicator,Label,Value,Unit,Accumulated,Fiscal Year,Fiscal Period,Form,Filed,Frame,Company Name,Ticker,CIK,SIC,SIC Description,Year,Month,Day,Quarter
+2025-12-31,Revenues,Revenues,"402,836",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,CostOfGoodsAndServicesSold,Cost of Revenue,"162,535",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,ResearchAndDevelopmentExpense,Research and Development Expense,"61,087",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"28,693",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,GeneralAndAdministrativeExpense,General and Administrative Expense,"21,482",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,OperatingIncomeLoss,Operating Income (Loss),"129,039",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","158,826",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"26,656",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"132,170",USD(Millions),0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,EarningsPerShareBasic,"Earnings Per Share, Basic",10.91,USD/shares,0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,EarningsPerShareDiluted,"Earnings Per Share, Diluted",10.81,USD/shares,0001652044-26-000018,2025,FY,10-K,2026-02-05,CY2025,ALPHABET INC.,,1652044,,,2025,12,31,Q4

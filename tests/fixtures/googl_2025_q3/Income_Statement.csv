@@ -1,0 +1,12 @@
+Date,Indicator,Label,Value,Unit,Accumulated,Fiscal Year,Fiscal Period,Form,Filed,Frame,Company Name,Ticker,CIK,SIC,SIC Description,Year,Month,Day,Quarter
+2025-09-30,Revenues,Revenues,"102,346",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,CostOfGoodsAndServicesSold,Cost of Revenue,"41,369",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,ResearchAndDevelopmentExpense,Research and Development Expense,"15,151",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"7,205",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,GeneralAndAdministrativeExpense,General and Administrative Expense,"7,393",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,OperatingIncomeLoss,Operating Income (Loss),"31,228",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","43,987",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"9,008",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"34,979",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,EarningsPerShareBasic,"Earnings Per Share, Basic",2.89,USD/shares,0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,EarningsPerShareDiluted,"Earnings Per Share, Diluted",2.87,USD/shares,0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
