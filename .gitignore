@@ -40,3 +40,6 @@ sec_financials/cache/
 
 # Output directory for financial data exports
 output/
+
+# Test output directory
+test_output/
