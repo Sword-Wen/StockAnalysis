@@ -457,6 +457,15 @@ class DataExtractor:
         elif statement_type == 'CashFlowStatement':
             # Cash flow statement usually only has accumulated data - keep all
             logger.debug(f"Cash flow statement: keeping all {len(filtered_data)} data points (no frame filtering)")
+        elif annual_only:
+            # Annual only mode: keep only FY (annual) data
+            annual_data = []
+            for point in filtered_data:
+                fp = point.get('fp', '')
+                if fp == 'FY':
+                    annual_data.append(point)
+            filtered_data = annual_data
+            logger.debug(f"Income statement after annual_only filter: {len(filtered_data)} data points (annual FY data only)")
         else:
             # Income statement: filter based on accumulated flag
             if accumulated:

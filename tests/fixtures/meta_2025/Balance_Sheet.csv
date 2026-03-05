@@ -1,0 +1,43 @@
+Date,Indicator,Label,Value,Unit,Accumulated,Fiscal Year,Fiscal Period,Form,Filed,Frame,Company Name,Ticker,CIK,SIC,SIC Description,Year,Month,Day,Quarter
+2025-12-31,CashAndCashEquivalentsAtCarryingValue,"Cash and Cash Equivalents, at Carrying Value","35,873",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,AccountsReceivableNetCurrent,"Accounts Receivable, after Allowance for Credit Loss, Current","19,769",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,AssetsCurrent,"Assets, Current","108,722",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,Goodwill,Goodwill,"24,534",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,IntangibleAssetsNetExcludingGoodwill,"Intangible Assets, Net (Excluding Goodwill)","3,692",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,Assets,Assets,"366,021",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,LiabilitiesCurrent,"Liabilities, Current","41,836",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,LongTermDebtNoncurrent,"Long-term Debt, Excluding Current Maturities","58,744",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,Liabilities,Liabilities,"148,778",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,RetainedEarningsAccumulatedDeficit,Retained Earnings (Accumulated Deficit),"121,179",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,StockholdersEquity,Stockholders' Equity Attributable to Parent,"217,243",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025Q4I,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-09-30,CashAndCashEquivalentsAtCarryingValue,"Cash and Cash Equivalents, at Carrying Value","10,187",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,AccountsReceivableNetCurrent,"Accounts Receivable, after Allowance for Credit Loss, Current","17,297",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,AssetsCurrent,"Assets, Current","73,118",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,Goodwill,Goodwill,"21,158",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,IntangibleAssetsNetExcludingGoodwill,"Intangible Assets, Net (Excluding Goodwill)","3,179",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,Assets,Assets,"303,844",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,LiabilitiesCurrent,"Liabilities, Current","36,958",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,LongTermDebtNoncurrent,"Long-term Debt, Excluding Current Maturities","28,834",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,Liabilities,Liabilities,"109,778",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,RetainedEarningsAccumulatedDeficit,Retained Earnings (Accumulated Deficit),"101,577",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-09-30,StockholdersEquity,Stockholders' Equity Attributable to Parent,"194,066",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q3I,"Meta Platforms, Inc.",,1326801,,,2025,9,30,Q3
+2025-06-30,CashAndCashEquivalentsAtCarryingValue,"Cash and Cash Equivalents, at Carrying Value","12,005",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,AccountsReceivableNetCurrent,"Accounts Receivable, after Allowance for Credit Loss, Current","16,561",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,AssetsCurrent,"Assets, Current","73,613",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,Goodwill,Goodwill,"20,654",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,Assets,Assets,"294,744",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,LiabilitiesCurrent,"Liabilities, Current","37,305",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,LongTermDebtNoncurrent,"Long-term Debt, Excluding Current Maturities","28,832",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,Liabilities,Liabilities,"99,674",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,RetainedEarningsAccumulatedDeficit,Retained Earnings (Accumulated Deficit),"106,345",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-06-30,StockholdersEquity,Stockholders' Equity Attributable to Parent,"195,070",USD(Millions),0001628280-25-047240,2025,Q3,10-Q,2025-10-30,CY2025Q2I,"Meta Platforms, Inc.",,1326801,,,2025,6,30,Q2
+2025-03-31,CashAndCashEquivalentsAtCarryingValue,"Cash and Cash Equivalents, at Carrying Value","28,750",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,AccountsReceivableNetCurrent,"Accounts Receivable, after Allowance for Credit Loss, Current","14,514",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,AssetsCurrent,"Assets, Current","90,227",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,Goodwill,Goodwill,"20,654",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,Assets,Assets,"280,213",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,LiabilitiesCurrent,"Liabilities, Current","33,890",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,LongTermDebtNoncurrent,"Long-term Debt, Excluding Current Maturities","28,829",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,Liabilities,Liabilities,"95,184",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,RetainedEarningsAccumulatedDeficit,Retained Earnings (Accumulated Deficit),"101,326",USD(Millions),0001326801-25-000054,2025,Q1,10-Q,2025-05-01,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1
+2025-03-31,StockholdersEquity,Stockholders' Equity Attributable to Parent,"185,029",USD(Millions),0001628280-25-036791,2025,Q2,10-Q,2025-07-31,CY2025Q1I,"Meta Platforms, Inc.",,1326801,,,2025,3,31,Q1

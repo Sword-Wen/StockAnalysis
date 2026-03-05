@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-SEC财务数据回归测试运行器
-使用新的验证逻辑：与基准数据比较而不是预设范围
+SEC财务数据回归测试运行器 - 简化版本
 """
 
 import sys
@@ -112,8 +111,20 @@ class TestRunner:
                 return case_results
             
             # 2. 运行SEC财务数据提取器
-            safe_print(f"执行数据提取: {test_case.ticker} {test_case.year}" + 
-                  (f" Q{test_case.quarter}" if test_case.quarter else " 全年"))
+            # 显示更详细的时间参数信息
+            time_info = f"{test_case.ticker} "
+            if test_case.start_year is not None and test_case.end_year is not None:
+                time_info += f"{test_case.start_year}-{test_case.end_year}"
+                if test_case.start_quarter is not None and test_case.end_quarter is not None:
+                    time_info += f" Q{test_case.start_quarter}-Q{test_case.end_quarter}"
+            elif test_case.year is not None:
+                time_info += f"{test_case.year}"
+                if test_case.quarter is not None:
+                    time_info += f" Q{test_case.quarter}"
+                else:
+                    time_info += " 全年"
+            
+            safe_print(f"执行数据提取: {time_info}")
             
             # 调用真实的数据提取器
             self._extract_real_data(test_case)
@@ -159,6 +170,19 @@ class TestRunner:
         # 确定输出目录（使用测试输出目录）
         output_dir = str(test_case.output_dir)
         
+        # 确定是否使用年度数据
+        # 如果使用年份范围模式且没有指定季度范围，默认使用年度数据
+        # 如果使用单一年份模式且没有指定季度，也使用年度数据
+        annual_only = False
+        if test_case.start_year is not None and test_case.end_year is not None:
+            # 年份范围模式
+            if test_case.start_quarter is None and test_case.end_quarter is None:
+                # 没有指定季度范围，使用年度数据
+                annual_only = True
+        elif test_case.year is not None and test_case.quarter is None:
+            # 单一年份全年模式，使用年度数据
+            annual_only = True
+        
         # 调用真实数据提取，传递年份范围参数
         result = extractor.fetch_financial_data(
             ticker=test_case.ticker,
@@ -166,7 +190,10 @@ class TestRunner:
             quarter=test_case.quarter,
             start_year=test_case.start_year,
             end_year=test_case.end_year,
-            output_dir=output_dir
+            start_quarter=test_case.start_quarter,
+            end_quarter=test_case.end_quarter,
+            output_dir=output_dir,
+            annual_only=annual_only
         )
         
         safe_print(f"[INFO] 数据提取完成: {result.get('company_name', '')}")
@@ -353,120 +380,6 @@ class TestRunner:
             safe_print("[CELE] 所有测试用例通过！")
         else:
             safe_print(f"[WARN] {failed_cases} 个测试用例失败，请检查上述错误信息")
-        
-        # 生成HTML报告（如果启用）
-        if self.generate_report:
-            self._generate_html_report()
-    
-    def _generate_html_report(self):
-        """生成HTML格式的详细报告"""
-        try:
-            report_file = OUTPUT_DIR / f"test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-            
-            html_content = self._create_html_report_content()
-            
-            with open(report_file, 'w', encoding='utf-8') as f:
-                f.write(html_content)
-            
-            safe_print(f"\n[CHART] HTML测试报告已生成: {report_file}")
-            
-        except Exception as e:
-            safe_print(f"生成HTML报告失败: {e}")
-    
-    def _create_html_report_content(self) -> str:
-        """创建HTML报告内容"""
-        total_cases = len(self.results)
-        passed_cases = sum(1 for r in self.results.values() if r["success"])
-        failed_cases = total_cases - passed_cases
-        
-        html = f"""<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEC财务数据回归测试报告</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }}
-        .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-        h1 {{ color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }}
-        .summary {{ background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
-        .stats {{ display: flex; justify-content: space-around; margin: 20px 0; }}
-        .stat-box {{ text-align: center; padding: 15px; border-radius: 5px; }}
-        .passed {{ background: #d4edda; color: #155724; }}
-        .failed {{ background: #f8d7da; color: #721c24; }}
-        .total {{ background: #d1ecf1; color: #0c5460; }}
-        .test-case {{ border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }}
-        .test-passed {{ border-left: 5px solid #28a745; }}
-        .test-failed {{ border-left: 5px solid #dc3545; }}
-        .validation {{ margin: 5px 0; padding: 5px; }}
-        .validation-passed {{ color: #28a745; }}
-        .validation-failed {{ color: #dc3545; }}
-        .timestamp {{ color: #6c757d; font-size: 0.9em; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📊 SEC财务数据回归测试报告</h1>
-        
-        <div class="summary">
-            <p><strong>测试时间:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <p><strong>总耗时:</strong> {self.end_time - self.start_time:.2f}秒</p>
-        </div>
-        
-        <div class="stats">
-            <div class="stat-box total">
-                <h3>总测试用例</h3>
-                <p style="font-size: 2em;">{total_cases}</p>
-            </div>
-            <div class="stat-box passed">
-                <h3>通过</h3>
-                <p style="font-size: 2em;">{passed_cases}</p>
-            </div>
-            <div class="stat-box failed">
-                <h3>失败</h3>
-                <p style="font-size: 2em;">{failed_cases}</p>
-            </div>
-        </div>
-        
-        <h2>测试用例详情</h2>
-"""
-        
-        for test_name, result in self.results.items():
-            status_class = "test-passed" if result["success"] else "test-failed"
-            status_icon = "✅" if result["success"] else "❌"
-            
-            html += f"""
-        <div class="test-case {status_class}">
-            <h3>{status_icon} {test_name}</h3>
-            <p><strong>描述:</strong> {result['test_case'].description}</p>
-            <p><strong>状态:</strong> {"通过" if result["success"] else "失败"}</p>
-            <p><strong>耗时:</strong> {result['duration']:.2f}秒</p>
-            <p><strong>结果:</strong> {result['message']}</p>
-            
-            <h4>验证详情:</h4>
-"""
-            
-            for validation in result["validations"]:
-                validation_class = "validation-passed" if validation["success"] else "validation-failed"
-                validation_icon = "✓" if validation["success"] else "✗"
-                
-                html += f"""
-            <div class="validation {validation_class}">
-                {validation_icon} {validation['validator']}: {validation['message']}
-            </div>
-"""
-            
-            html += """
-        </div>
-"""
-        
-        html += """
-    </div>
-</body>
-</html>
-"""
-        
-        return html
 
 
 def main():
@@ -498,4 +411,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-   

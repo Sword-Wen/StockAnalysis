@@ -80,6 +80,8 @@ class TestCase:
         quarter: 季度（None表示全年）
         start_year: 起始年份（年份范围模式）
         end_year: 结束年份（年份范围模式）
+        start_quarter: 起始季度（季度范围模式）
+        end_quarter: 结束季度（季度范围模式）
         description: 测试描述
         expected_files: 期望生成的CSV文件列表
         key_indicators: 关键指标验证规则（现在只存储指标名称列表）
@@ -92,6 +94,8 @@ class TestCase:
     quarter: Optional[int] = None
     start_year: Optional[int] = None
     end_year: Optional[int] = None
+    start_quarter: Optional[int] = None
+    end_quarter: Optional[int] = None
     description: str = ""
     expected_files: List[str] = field(default_factory=lambda: [
         "Balance_Sheet.csv",
@@ -107,7 +111,12 @@ class TestCase:
         if not self.description:
             if self.start_year is not None and self.end_year is not None:
                 # 年份范围模式
-                self.description = f"{self.ticker} {self.start_year}-{self.end_year}年财报数据测试"
+                if self.start_quarter is not None and self.end_quarter is not None:
+                    # 季度范围模式
+                    self.description = f"{self.ticker} {self.start_year}年Q{self.start_quarter}-{self.end_year}年Q{self.end_quarter}财报数据测试"
+                else:
+                    # 年份范围模式（无季度）
+                    self.description = f"{self.ticker} {self.start_year}-{self.end_year}年财报数据测试"
             elif self.quarter:
                 # 单一年份季度模式
                 self.description = f"{self.ticker} {self.year}年Q{self.quarter}财报数据测试"
