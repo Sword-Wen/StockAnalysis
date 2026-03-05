@@ -6,9 +6,12 @@ import requests
 import time
 import json
 import os
+import ssl
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 import logging
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 
 from .config import (
     SEC_API_BASE_URL,
@@ -25,19 +28,52 @@ logger = logging.getLogger(__name__)
 class SECClient:
     """Client for interacting with SEC REST API"""
     
-    def __init__(self, user_agent: Optional[str] = None):
+    def __init__(self, user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
         """
         Initialize SEC API client
         
         Args:
             user_agent: Custom User-Agent string (required by SEC API)
+            proxy_url: Proxy URL (e.g., "http://127.0.0.1:10808")
         """
         self.user_agent = user_agent or USER_AGENT
+        self.proxy_url = proxy_url
+        
+        # Configure session with retry strategy
         self.session = requests.Session()
+        
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["GET"]
+        )
+        
+        # Create adapter with retry strategy
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        
+        # Set headers
         self.session.headers.update({
             "User-Agent": self.user_agent,
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip, deflate"
         })
+        
+        # Set timeout and SSL configuration
+        self.session.verify = True  # Enable SSL verification
+        self.timeout = 30  # 30 seconds timeout
+        
+        # Configure proxies if provided
+        if self.proxy_url:
+            self.session.proxies = {
+                "http": self.proxy_url,
+                "https": self.proxy_url
+            }
+            logger.info(f"Using proxy: {self.proxy_url}")
+        
         self.last_request_time = 0
         self.min_request_interval = 1.0 / RATE_LIMIT
         
@@ -108,7 +144,7 @@ class SECClient:
         
         try:
             logger.info(f"Fetching data from SEC API for CIK {cik_padded}")
-            response = self.session.get(url)
+            response = self.session.get(url, timeout=self.timeout)
             response.raise_for_status()
             
             data = response.json()

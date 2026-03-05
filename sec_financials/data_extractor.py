@@ -111,7 +111,8 @@ class DataExtractor:
         end_year: Optional[int] = None,
         start_quarter: Optional[int] = None,
         end_quarter: Optional[int] = None,
-        accumulated: bool = False
+        accumulated: bool = False,
+        annual_only: bool = False
     ) -> Dict[str, List[Dict[str, Any]]]:
         """
         Extract financial statements from company data
@@ -125,6 +126,7 @@ class DataExtractor:
             start_quarter: Start quarter for range
             end_quarter: End quarter for range
             accumulated: Whether to use accumulated data (Nine Months Ended) instead of quarterly data
+            annual_only: Whether to keep only annual data (FY) when filtering by year
             
         Returns:
             Dictionary with keys: 'balance_sheet', 'income_statement', 'cash_flow'
@@ -146,19 +148,19 @@ class DataExtractor:
         balance_sheet = self._extract_statement(
             gaap_facts, 'BalanceSheet', company_info,
             year, quarter, start_year, end_year, start_quarter, end_quarter,
-            accumulated
+            accumulated, annual_only
         )
         
         income_statement = self._extract_statement(
             gaap_facts, 'IncomeStatement', company_info,
             year, quarter, start_year, end_year, start_quarter, end_quarter,
-            accumulated
+            accumulated, annual_only
         )
         
         cash_flow = self._extract_statement(
             gaap_facts, 'CashFlowStatement', company_info,
             year, quarter, start_year, end_year, start_quarter, end_quarter,
-            accumulated
+            accumulated, annual_only
         )
         
         return {
@@ -278,29 +280,63 @@ class DataExtractor:
         if not data_points:
             return []
         
-        # Create a mapping key: (date, matched_indicator, value, frame)
-        # Keep only the first occurrence for each unique combination
-        seen_keys = set()
-        deduplicated = []
+        # Group data points by (date, indicator)
+        # Keep only the latest filed date for each group
+        grouped_data = {}
         
         logger.debug(f"Starting deduplication with {len(data_points)} data points")
         
         for point in data_points:
             date = point.get('end', '')
+            indicator = point.get('indicator', '')
+            fiscal_year = point.get('fy', '')
+            filed_date = point.get('filed', '')
             matched_indicator = point.get('matched_indicator', '')
             value = point.get('val', '')
             frame = point.get('frame', '')
-            indicator = point.get('indicator', '')
             
-            # Create a unique key
-            key = (date, matched_indicator, value, frame)
+            # Create a grouping key: (date, indicator)
+            group_key = (date, indicator)
             
-            if key not in seen_keys:
-                seen_keys.add(key)
-                deduplicated.append(point)
-                logger.debug(f"  Keeping: {indicator} -> {matched_indicator} at {date}, value={value}, frame={frame}")
+            # Parse filed date for comparison
+            try:
+                filed_datetime = TimeProcessor.parse_date(filed_date) if filed_date else None
+            except (ValueError, KeyError):
+                filed_datetime = None
+            
+            # If this group already has an entry, keep the one with the latest filed date
+            if group_key in grouped_data:
+                existing_point = grouped_data[group_key]
+                existing_filed = existing_point.get('filed', '')
+                existing_filed_datetime = None
+                
+                try:
+                    existing_filed_datetime = TimeProcessor.parse_date(existing_filed) if existing_filed else None
+                except (ValueError, KeyError):
+                    existing_filed_datetime = None
+                
+                # Compare filed dates
+                if filed_datetime and existing_filed_datetime:
+                    if filed_datetime > existing_filed_datetime:
+                        # New point has later filed date, replace
+                        grouped_data[group_key] = point
+                        logger.debug(f"  Replacing: {indicator} at {date} - newer filed date: {filed_date} > {existing_filed}")
+                    else:
+                        logger.debug(f"  Keeping existing: {indicator} at {date} - older filed date: {filed_date} <= {existing_filed}")
+                elif filed_datetime and not existing_filed_datetime:
+                    # New point has filed date, existing doesn't, replace
+                    grouped_data[group_key] = point
+                    logger.debug(f"  Replacing: {indicator} at {date} - has filed date: {filed_date}")
+                else:
+                    # Keep existing (either both have no filed date or existing is newer)
+                    logger.debug(f"  Keeping existing: {indicator} at {date}")
             else:
-                logger.debug(f"  Removing duplicate: {indicator} -> {matched_indicator} at {date}, value={value}, frame={frame}")
+                # First entry for this group
+                grouped_data[group_key] = point
+                logger.debug(f"  Adding: {indicator} at {date} - filed: {filed_date}")
+        
+        # Convert back to list
+        deduplicated = list(grouped_data.values())
         
         logger.debug(f"After deduplication: {len(deduplicated)} data points")
         return deduplicated
@@ -316,7 +352,8 @@ class DataExtractor:
         end_year: Optional[int] = None,
         start_quarter: Optional[int] = None,
         end_quarter: Optional[int] = None,
-        accumulated: bool = False
+        accumulated: bool = False,
+        annual_only: bool = False
     ) -> List[Dict[str, Any]]:
         """
         Extract specific statement data
@@ -332,6 +369,7 @@ class DataExtractor:
             start_quarter: Start quarter for range
             end_quarter: End quarter for range
             accumulated: Whether to use accumulated data (Nine Months Ended) instead of quarterly data
+            annual_only: Whether to keep only annual data (FY) when filtering by year
             
         Returns:
             List of data points for the statement
@@ -402,7 +440,8 @@ class DataExtractor:
             start_year=start_year,
             end_year=end_year,
             start_quarter=start_quarter,
-            end_quarter=end_quarter
+            end_quarter=end_quarter,
+            annual_only=annual_only
         )
         
         logger.debug(f"After time filtering: {len(filtered_data)} data points for {statement_type}")

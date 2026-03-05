@@ -159,11 +159,13 @@ class TestRunner:
         # 确定输出目录（使用测试输出目录）
         output_dir = str(test_case.output_dir)
         
-        # 调用真实数据提取
+        # 调用真实数据提取，传递年份范围参数
         result = extractor.fetch_financial_data(
             ticker=test_case.ticker,
             year=test_case.year,
             quarter=test_case.quarter,
+            start_year=test_case.start_year,
+            end_year=test_case.end_year,
             output_dir=output_dir
         )
         
@@ -222,8 +224,10 @@ class TestRunner:
             safe_print(f"  基准文件: {expected_file}")
             safe_print(f"  输出文件: {output_file}")
             
-            # 运行默认验证器
-            for validator in DEFAULT_VALIDATORS:
+            # 运行验证器（使用测试用例的自定义验证器，如果提供了的话）
+            validators_to_use = test_case.custom_validators if test_case.custom_validators else DEFAULT_VALIDATORS
+            
+            for validator in validators_to_use:
                 if validator == validate_csv_structure:
                     result = validator(output_file, TestConfig.REQUIRED_COLUMNS)
                 elif validator == validate_row_count:

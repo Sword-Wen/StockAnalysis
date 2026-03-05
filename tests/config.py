@@ -76,8 +76,10 @@ class TestCase:
     属性:
         name: 测试用例名称（唯一标识符）
         ticker: 股票代码
-        year: 年份
+        year: 年份（单一年份模式）
         quarter: 季度（None表示全年）
+        start_year: 起始年份（年份范围模式）
+        end_year: 结束年份（年份范围模式）
         description: 测试描述
         expected_files: 期望生成的CSV文件列表
         key_indicators: 关键指标验证规则（现在只存储指标名称列表）
@@ -86,8 +88,10 @@ class TestCase:
     """
     name: str
     ticker: str
-    year: int
+    year: Optional[int] = None
     quarter: Optional[int] = None
+    start_year: Optional[int] = None
+    end_year: Optional[int] = None
     description: str = ""
     expected_files: List[str] = field(default_factory=lambda: [
         "Balance_Sheet.csv",
@@ -101,8 +105,15 @@ class TestCase:
     def __post_init__(self):
         """初始化后处理"""
         if not self.description:
-            quarter_str = f"Q{self.quarter}" if self.quarter else "全年"
-            self.description = f"{self.ticker} {self.year}年{quarter_str}财报数据测试"
+            if self.start_year is not None and self.end_year is not None:
+                # 年份范围模式
+                self.description = f"{self.ticker} {self.start_year}-{self.end_year}年财报数据测试"
+            elif self.quarter:
+                # 单一年份季度模式
+                self.description = f"{self.ticker} {self.year}年Q{self.quarter}财报数据测试"
+            else:
+                # 单一年份全年模式
+                self.description = f"{self.ticker} {self.year}年全年财报数据测试"
     
     @property
     def fixture_dir(self) -> Path:

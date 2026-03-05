@@ -29,10 +29,11 @@ from .config import USER_AGENT
 class SECFinancialExtractor:
     """Main class for extracting financial data from SEC"""
     
-    def __init__(self, user_agent: Optional[str] = None):
+    def __init__(self, user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
         """Initialize the extractor"""
         self.user_agent = user_agent or USER_AGENT
-        self.client = SECClient(user_agent=self.user_agent)
+        self.proxy_url = proxy_url
+        self.client = SECClient(user_agent=self.user_agent, proxy_url=self.proxy_url)
         self.ticker_mapper = TickerMapper()
         self.data_extractor = DataExtractor()
     
@@ -47,7 +48,8 @@ class SECFinancialExtractor:
         end_quarter: Optional[int] = None,
         output_dir: str = "output",
         format_for_csv: bool = True,
-        accumulated: bool = False
+        accumulated: bool = False,
+        annual_only: bool = False
     ) -> dict:
         """
         Main method to fetch and process financial data
@@ -63,6 +65,7 @@ class SECFinancialExtractor:
             output_dir: Output directory for CSV files
             format_for_csv: Whether to format data for CSV export
             accumulated: Whether to use accumulated data (Nine Months Ended) instead of quarterly data
+            annual_only: Whether to keep only annual data (FY) when filtering by year
             
         Returns:
             Dictionary with results and file paths
@@ -103,7 +106,8 @@ class SECFinancialExtractor:
             end_year=end_year,
             start_quarter=start_quarter,
             end_quarter=end_quarter,
-            accumulated=accumulated
+            accumulated=accumulated,
+            annual_only=annual_only
         )
         
         # Check if we got any data
@@ -168,7 +172,8 @@ class SECFinancialExtractor:
                 'start_quarter': start_quarter,
                 'end_quarter': end_quarter
             },
-            'accumulated': accumulated
+            'accumulated': accumulated,
+            'annual_only': annual_only
         }
         
         return result
@@ -212,6 +217,7 @@ Examples:
   %(prog)s GOOGL --start-year 2020 --end-year 2023
   %(prog)s AMZN --start-year 2021 --start-quarter 1 --end-year 2023 --end-quarter 4
   %(prog)s GOOG --year 2025 --quarter 3 --accumulated  # 使用累计数据（截至Q3的9个月合计）
+  %(prog)s META --start-year 2024 --end-year 2025 --annual-only  # 只获取年度数据（FY）
   %(prog)s search AAP --limit 5
   %(prog)s stats
         """
@@ -237,8 +243,11 @@ Examples:
     
     fetch_parser.add_argument('--output-dir', default='output', help='Output directory for CSV files')
     fetch_parser.add_argument('--user-agent', help='Custom User-Agent string for SEC API')
+    fetch_parser.add_argument('--proxy', help='Proxy URL (e.g., http://127.0.0.1:10808)')
     fetch_parser.add_argument('--accumulated', action='store_true', 
                             help='Use accumulated data (Nine Months Ended) instead of quarterly data')
+    fetch_parser.add_argument('--annual-only', action='store_true',
+                            help='Keep only annual data (FY) when filtering by year')
     
     # Search command
     search_parser = subparsers.add_parser('search', help='Search for tickers')
@@ -260,7 +269,10 @@ Examples:
     args = parser.parse_args()
     
     try:
-        extractor = SECFinancialExtractor(user_agent=args.user_agent if hasattr(args, 'user_agent') else None)
+        extractor = SECFinancialExtractor(
+            user_agent=args.user_agent if hasattr(args, 'user_agent') else None,
+            proxy_url=args.proxy if hasattr(args, 'proxy') else None
+        )
         
         if args.command == 'fetch':
             # Validate quarter parameters
@@ -270,6 +282,33 @@ Examples:
                 fetch_parser.error("--start-quarter requires --start-year")
             if args.end_quarter and not args.end_year:
                 fetch_parser.error("--end-quarter requires --end-year")
+            
+            # Determine if annual_only should be enabled by default
+            # Default to True when using year range mode (start_year and end_year specified)
+            # unless explicitly overridden by --annual-only
+            default_annual_only = False
+            
+            # If using year range mode without quarter specification, default to annual_only
+            if args.start_year is not None and args.end_year is not None:
+                # Year range mode
+                if args.start_quarter is None and args.end_quarter is None:
+                    # No quarter range specified, default to annual_only
+                    default_annual_only = True
+            
+            # If using single year mode without quarter, also default to annual_only
+            elif args.year is not None and args.quarter is None:
+                # Single year mode without quarter, default to annual_only
+                default_annual_only = True
+            
+            # Use explicit --annual-only flag if provided, otherwise use default
+            # Note: args.annual_only will be True if --annual-only is specified, False otherwise
+            # We need to check if it was explicitly set to True
+            if hasattr(args, 'annual_only') and args.annual_only:
+                # User explicitly requested annual_only
+                annual_only_value = True
+            else:
+                # Use default behavior
+                annual_only_value = default_annual_only
             
             # Fetch financial data
             result = extractor.fetch_financial_data(
@@ -281,7 +320,8 @@ Examples:
                 start_quarter=args.start_quarter,
                 end_quarter=args.end_quarter,
                 output_dir=args.output_dir,
-                accumulated=args.accumulated if hasattr(args, 'accumulated') else False
+                accumulated=args.accumulated if hasattr(args, 'accumulated') else False,
+                annual_only=annual_only_value
             )
             
             # Print summary

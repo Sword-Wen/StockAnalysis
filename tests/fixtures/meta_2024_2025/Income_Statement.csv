@@ -1,0 +1,25 @@
+Date,Indicator,Label,Value,Unit,Accumulated,Fiscal Year,Fiscal Period,Form,Filed,Frame,Company Name,Ticker,CIK,SIC,SIC Description,Year,Month,Day,Quarter
+2025-12-31,RevenueFromContractWithCustomerExcludingAssessedTax,"Revenue from Contract with Customer, Excluding Assessed Tax","200,966",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,CostOfGoodsAndServicesSold,Cost of Revenue,"36,175",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,ResearchAndDevelopmentExpense,Research and Development Expense,"57,372",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"11,991",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,GeneralAndAdministrativeExpense,General and Administrative Expense,"12,152",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,DepreciationDepletionAndAmortization,"Depreciation, Depletion and Amortization","18,616",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,OperatingIncomeLoss,Operating Income (Loss),"83,276",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","85,932",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"25,474",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"60,458",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,EarningsPerShareBasic,"Earnings Per Share, Basic",23.98,USD/shares,0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2025-12-31,EarningsPerShareDiluted,"Earnings Per Share, Diluted",23.49,USD/shares,0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2025,"Meta Platforms, Inc.",,1326801,,,2025,12,31,Q4
+2024-12-31,RevenueFromContractWithCustomerExcludingAssessedTax,"Revenue from Contract with Customer, Excluding Assessed Tax","164,501",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,CostOfGoodsAndServicesSold,Cost of Revenue,"30,161",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,ResearchAndDevelopmentExpense,Research and Development Expense,"43,873",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"11,347",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,GeneralAndAdministrativeExpense,General and Administrative Expense,"9,740",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,DepreciationDepletionAndAmortization,"Depreciation, Depletion and Amortization","15,498",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,OperatingIncomeLoss,Operating Income (Loss),"69,380",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","70,663",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"8,303",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"62,360",USD(Millions),0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,EarningsPerShareBasic,"Earnings Per Share, Basic",24.61,USD/shares,0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4
+2024-12-31,EarningsPerShareDiluted,"Earnings Per Share, Diluted",23.86,USD/shares,0001628280-26-003942,2025,FY,10-K,2026-01-29,CY2024,"Meta Platforms, Inc.",,1326801,,,2024,12,31,Q4

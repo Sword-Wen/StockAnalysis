@@ -171,7 +171,8 @@ class TimeProcessor:
         start_year: Optional[int] = None,
         end_year: Optional[int] = None,
         start_quarter: Optional[int] = None,
-        end_quarter: Optional[int] = None
+        end_quarter: Optional[int] = None,
+        annual_only: bool = False
     ) -> List[Dict[str, Any]]:
         """
         Main filtering function that handles all time filtering modes
@@ -184,6 +185,7 @@ class TimeProcessor:
             end_year: End year for range
             start_quarter: Start quarter for range
             end_quarter: End quarter for range
+            annual_only: Whether to keep only annual data (FY) when filtering by year
             
         Returns:
             Filtered list of data points
@@ -222,8 +224,9 @@ class TimeProcessor:
             
             logger.debug(f"Year filtered: {len(year_filtered)} data points after year filter")
             
-            # Then filter to keep only annual data (not quarterly) when year is specified without quarter
-            if year is not None and quarter is None:
+            # Then filter to keep only annual data (not quarterly) when annual_only is True
+            # or when year is specified without quarter (backward compatibility)
+            if annual_only or (year is not None and quarter is None):
                 # Keep only annual data points (frame indicates annual)
                 annual_data = []
                 for point in year_filtered:
@@ -256,13 +259,13 @@ class TimeProcessor:
                             continue
                     
                     # 3. Fiscal period is FY (annual)
-                    if fp == 'FY' and fy == str(year):
+                    if fp == 'FY' and (fy == str(year) if year is not None else True):
                         logger.debug(f"  Accepted (fiscal year): {indicator}, fp={fp}, fy={fy}")
                         annual_data.append(point)
                         continue
                     
                     # 4. Frame is exactly the year (e.g., '2025')
-                    if frame == str(year):
+                    if frame == str(year) and year is not None:
                         logger.debug(f"  Accepted (year frame): {indicator}, frame={frame}")
                         annual_data.append(point)
                         continue
