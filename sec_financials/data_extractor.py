@@ -464,9 +464,63 @@ class DataExtractor:
                 filtered_data = [point for point in filtered_data if not point.get('frame')]
                 logger.debug(f"Income statement after accumulated filter: {len(filtered_data)} data points (accumulated data only)")
             else:
-                # Keep only quarterly data (Frame is not empty)
-                filtered_data = [point for point in filtered_data if point.get('frame')]
-                logger.debug(f"Income statement after quarterly filter: {len(filtered_data)} data points (quarterly data only)")
+                # Keep only quarterly data (Frame is not empty) AND fiscal period is not FY
+                # This ensures we don't include annual FY data when requesting quarterly data
+                # But we need to handle Q4 specially - if there's no Q4 quarterly data, we should calculate it
+                quarterly_data = []
+                fy_data_by_indicator = {}
+                q3_accumulated_data_by_indicator = {}
+                
+                # First pass: collect data
+                for point in filtered_data:
+                    fp = point.get('fp', '')
+                    frame = point.get('frame', '')
+                    indicator = point.get('indicator', '')
+                    end = point.get('end', '')
+                    
+                    if fp == 'FY' and '12-31' in end:
+                        # This is annual FY data (year-end)
+                        fy_data_by_indicator[indicator] = point
+                    elif fp == 'Q3' and not frame:
+                        # This is Q3 accumulated data (Q1+Q2+Q3)
+                        q3_accumulated_data_by_indicator[indicator] = point
+                    elif frame and fp != 'FY':
+                        # This is regular quarterly data
+                        quarterly_data.append(point)
+                
+                logger.debug(f"Found {len(quarterly_data)} quarterly data points, {len(fy_data_by_indicator)} FY data points, {len(q3_accumulated_data_by_indicator)} Q3 accumulated data points")
+                
+                # Second pass: calculate Q4 data if missing
+                for indicator, fy_point in fy_data_by_indicator.items():
+                    # Check if we already have Q4 data for this indicator
+                    has_q4 = False
+                    for q_point in quarterly_data:
+                        if q_point.get('indicator') == indicator and q_point.get('end', '').endswith('12-31'):
+                            has_q4 = True
+                            break
+                    
+                    if not has_q4 and indicator in q3_accumulated_data_by_indicator:
+                        # Calculate Q4 = FY - Q3 accumulated
+                        try:
+                            fy_value = float(fy_point.get('val', 0))
+                            q3_accumulated_value = float(q3_accumulated_data_by_indicator[indicator].get('val', 0))
+                            q4_value = fy_value - q3_accumulated_value
+                            
+                            if q4_value > 0:  # Only add if positive
+                                # Create Q4 data point
+                                q4_point = fy_point.copy()
+                                q4_point['val'] = q4_value
+                                q4_point['fp'] = 'Q4'
+                                q4_point['frame'] = 'CY2025Q4'  # Add frame for Q4
+                                q4_point['form'] = '10-K'  # Derived from 10-K
+                                
+                                logger.debug(f"Calculated Q4 data for {indicator}: FY={fy_value}, Q3_accumulated={q3_accumulated_value}, Q4={q4_value}")
+                                quarterly_data.append(q4_point)
+                        except (ValueError, TypeError) as e:
+                            logger.warning(f"Failed to calculate Q4 data for {indicator}: {e}")
+                
+                filtered_data = quarterly_data
+                logger.debug(f"Income statement after quarterly filter: {len(filtered_data)} data points (quarterly data with calculated Q4)")
         
         # Additional deduplication (in case same data appears multiple times)
         filtered_data = self._deduplicate_data_points(filtered_data)

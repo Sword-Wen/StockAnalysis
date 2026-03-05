@@ -300,6 +300,13 @@ Examples:
                 # Single year mode without quarter, default to annual_only
                 default_annual_only = True
             
+            # IMPORTANT: If user explicitly requests quarter range (e.g., Q1-Q4), 
+            # we should NOT default to annual_only, even if they didn't specify --annual-only
+            # This ensures quarterly data is returned when quarter range is specified
+            if args.start_quarter is not None and args.end_quarter is not None:
+                # User explicitly requested quarter range, don't default to annual_only
+                default_annual_only = False
+            
             # Use explicit --annual-only flag if provided, otherwise use default
             # Note: args.annual_only will be True if --annual-only is specified, False otherwise
             # We need to check if it was explicitly set to True

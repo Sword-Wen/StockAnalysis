@@ -225,8 +225,14 @@ class TimeProcessor:
             logger.debug(f"Year filtered: {len(year_filtered)} data points after year filter")
             
             # Then filter to keep only annual data (not quarterly) when annual_only is True
-            # or when year is specified without quarter (backward compatibility)
-            if annual_only or (year is not None and quarter is None):
+            # or when year is specified without quarter AND without quarter range (backward compatibility)
+            # This ensures that when user explicitly requests quarter range (e.g., Q1-Q4), we don't filter out quarterly data
+            should_apply_annual_filter = annual_only or (
+                year is not None and quarter is None and 
+                start_quarter is None and end_quarter is None
+            )
+            
+            if should_apply_annual_filter:
                 # Keep only annual data points (frame indicates annual)
                 annual_data = []
                 for point in year_filtered:
