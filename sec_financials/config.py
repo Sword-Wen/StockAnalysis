@@ -95,3 +95,55 @@ QUARTER_MONTHS = {
     3: (7, 9),   # Q3: Jul-Sep
     4: (10, 12)  # Q4: Oct-Dec
 }
+
+# 指标简称映射（用于透视表输出）
+INDICATOR_SHORT_NAMES = {
+    # 资产负债表
+    "CashAndCashEquivalentsAtCarryingValue": "Cash",
+    "ShortTermBorrowings": "Short-term Borrowings",
+    "AccountsReceivableNetCurrent": "Accounts Receivable",
+    "InventoryNet": "Inventory",
+    "AssetsCurrent": "Total Current Assets",
+    "PropertyPlantAndEquipmentNet": "PP&E",
+    "Goodwill": "Goodwill",
+    "IntangibleAssetsNetExcludingGoodwill": "Intangibles",
+    "Assets": "Total Assets",
+    "AccountsPayableCurrent": "Accounts Payable",
+    "LiabilitiesCurrent": "Total Current Liabilities",
+    "LongTermDebtNoncurrent": "Long-term Debt",
+    "Liabilities": "Total Liabilities",
+    "RetainedEarningsAccumulatedDeficit": "Retained Earnings",
+    "StockholdersEquity": "Total Equity",
+    
+    # 利润表
+    "Revenues": "Revenue",
+    "RevenueFromContractWithCustomerExcludingAssessedTax": "Revenue",
+    "CostOfGoodsAndServicesSold": "Cost of Revenue",
+    "GrossProfit": "Gross Profit",
+    "ResearchAndDevelopmentExpense": "R&D",
+    "SellingGeneralAndAdministrativeExpense": "SG&A",
+    "GeneralAndAdministrativeExpense": "G&A",
+    "OperatingExpenses": "Operating Expenses",
+    "DepreciationDepletionAndAmortization": "Depreciation & Amortization",
+    "OperatingIncomeLoss": "Operating Income",
+    "InterestExpense": "Interest Expense",
+    "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest": "Pre-tax Income",
+    "IncomeTaxExpenseBenefit": "Income Tax",
+    "NetIncomeLoss": "Net Income",
+    "EarningsPerShareBasic": "EPS (Basic)",
+    "EarningsPerShareDiluted": "EPS (Diluted)",
+    
+    # 现金流量表
+    "NetCashProvidedByUsedInOperatingActivities": "Operating Cash Flow",
+    "PaymentsToAcquirePropertyPlantAndEquipment": "CapEx",
+    "ProceedsFromSaleOfPropertyPlantAndEquipment": "PP&E Sale Proceeds",
+    "PaymentsToAcquireBusinessesNetOfCashAcquired": "Acquisitions",
+    "ProceedsFromDivestitureOfBusinessesNetOfCashDivested": "Divestitures",
+    "NetCashProvidedByUsedInInvestingActivities": "Investing Cash Flow",
+    "PaymentsForRepurchaseOfCommonStock": "Share Repurchase",
+    "ProceedsFromIssuanceOfCommonStock": "Stock Issuance",
+    "PaymentsOfDividends": "Dividends",
+    "NetPaymentsRelatedToStockBasedAwardActivities": "Stock-based Compensation",
+    "NetCashProvidedByUsedInFinancingActivities": "Financing Cash Flow",
+    "CashAndCashEquivalentsPeriodIncreaseDecrease": "Net Change in Cash"
+}

@@ -49,7 +49,9 @@ class SECFinancialExtractor:
         output_dir: str = "output",
         format_for_csv: bool = True,
         accumulated: bool = False,
-        annual_only: bool = False
+        annual_only: bool = False,
+        pivot: bool = False,
+        period_type: Optional[str] = None
     ) -> dict:
         """
         Main method to fetch and process financial data
@@ -66,10 +68,22 @@ class SECFinancialExtractor:
             format_for_csv: Whether to format data for CSV export
             accumulated: Whether to use accumulated data (Nine Months Ended) instead of quarterly data
             annual_only: Whether to keep only annual data (FY) when filtering by year
+            pivot: Whether to export as pivot table format
+            period_type: 'annual' or 'quarterly' for pivot table (None = auto-detect)
             
         Returns:
             Dictionary with results and file paths
         """
+        # Auto-detect period_type if not specified
+        if period_type is None:
+            # Determine period_type based on quarter parameters
+            if (quarter is not None) or (start_quarter is not None) or (end_quarter is not None):
+                # If any quarter parameter is specified, use quarterly
+                period_type = 'quarterly'
+            else:
+                # Otherwise, use annual
+                period_type = 'annual'
+            logger.info(f"Auto-detected period_type: {period_type}")
         # Validate time parameters
         is_valid, error_msg = TimeProcessor.validate_time_parameters(
             year=year,
@@ -123,26 +137,61 @@ class SECFinancialExtractor:
         
         # Export to CSV
         logger.info("Exporting to CSV files...")
-        if format_for_csv:
-            exported_files = CSVExporter.export_formatted_statements(
-                formatted_statements,
-                ticker,
-                output_dir=output_dir,
-                year=year,
-                quarter=quarter,
-                start_year=start_year,
-                end_year=end_year
-            )
+        
+        exported_files = {}
+        
+        if pivot:
+            # Export pivot tables
+            if format_for_csv and formatted_statements:
+                exported_files = CSVExporter.export_pivot_table(
+                    formatted_statements,
+                    ticker,
+                    period_type=period_type,
+                    output_dir=output_dir,
+                    year=year,
+                    quarter=quarter,
+                    start_year=start_year,
+                    end_year=end_year
+                )
+            else:
+                logger.warning("Pivot table export requires formatted data. Setting format_for_csv=True")
+                # Format data for pivot table
+                if not formatted_statements:
+                    for stmt_type, stmt_data in statements.items():
+                        formatted_statements[stmt_type] = self.data_extractor.format_data_for_csv(stmt_data)
+                
+                exported_files = CSVExporter.export_pivot_table(
+                    formatted_statements,
+                    ticker,
+                    period_type=period_type,
+                    output_dir=output_dir,
+                    year=year,
+                    quarter=quarter,
+                    start_year=start_year,
+                    end_year=end_year
+                )
         else:
-            exported_files = CSVExporter.export_statements(
-                statements,
-                ticker,
-                output_dir=output_dir,
-                year=year,
-                quarter=quarter,
-                start_year=start_year,
-                end_year=end_year
-            )
+            # Export regular statements
+            if format_for_csv:
+                exported_files = CSVExporter.export_formatted_statements(
+                    formatted_statements,
+                    ticker,
+                    output_dir=output_dir,
+                    year=year,
+                    quarter=quarter,
+                    start_year=start_year,
+                    end_year=end_year
+                )
+            else:
+                exported_files = CSVExporter.export_statements(
+                    statements,
+                    ticker,
+                    output_dir=output_dir,
+                    year=year,
+                    quarter=quarter,
+                    start_year=start_year,
+                    end_year=end_year
+                )
         
         # Create summary report
         summary_path = CSVExporter.create_summary_report(exported_files, output_dir)
@@ -218,6 +267,12 @@ Examples:
   %(prog)s AMZN --start-year 2021 --start-quarter 1 --end-year 2023 --end-quarter 4
   %(prog)s GOOG --year 2025 --quarter 3 --accumulated  # 使用累计数据（截至Q3的9个月合计）
   %(prog)s META --start-year 2024 --end-year 2025 --annual-only  # 只获取年度数据（FY）
+  
+  # 透视表功能
+  %(prog)s GOOGL --start-year 2015 --end-year 2024 --pivot  # 年度透视表
+  %(prog)s AAPL --year 2024 --pivot --period-type quarterly  # 季度透视表
+  %(prog)s MSFT --start-year 2020 --end-year 2023 --pivot --period-type annual  # 年度透视表
+  
   %(prog)s search AAP --limit 5
   %(prog)s stats
         """
@@ -248,6 +303,13 @@ Examples:
                             help='Use accumulated data (Nine Months Ended) instead of quarterly data')
     fetch_parser.add_argument('--annual-only', action='store_true',
                             help='Keep only annual data (FY) when filtering by year')
+    
+    # Pivot table options
+    fetch_parser.add_argument('--pivot', action='store_true',
+                            help='Export as pivot table format (columns=periods, rows=indicators, values=values)')
+    fetch_parser.add_argument('--period-type', choices=['annual', 'quarterly'], 
+                            default=None,
+                            help='Period type for pivot table: annual or quarterly (auto-detect if not specified)')
     
     # Search command
     search_parser = subparsers.add_parser('search', help='Search for tickers')
@@ -328,7 +390,9 @@ Examples:
                 end_quarter=args.end_quarter,
                 output_dir=args.output_dir,
                 accumulated=args.accumulated if hasattr(args, 'accumulated') else False,
-                annual_only=annual_only_value
+                annual_only=annual_only_value,
+                pivot=args.pivot if hasattr(args, 'pivot') else False,
+                period_type=args.period_type  # None = auto-detect
             )
             
             # Print summary
