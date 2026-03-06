@@ -13,10 +13,13 @@
 - ✅ **智能指标匹配**：支持指标别名映射、部分匹配和基于单词的相似度匹配
 - ✅ **数据去重机制**：避免重复提取相同数据
 - ✅ **三表分离输出**：生成三个独立的CSV文件
+- ✅ **透视表导出**：支持导出为透视表格式（列=期间，行=指标，值=数值）
 - ✅ **缓存机制**：减少重复API调用，提高效率
 - ✅ **命令行接口**：提供易用的CLI工具
 - ✅ **详细日志**：完整的操作日志和错误处理
 - ✅ **指标发现工具**：帮助查找特定公司的可用财务指标
+- ✅ **代理支持**：支持通过代理服务器访问SEC API
+- ✅ **智能默认行为**：年份范围模式默认只返回年度数据
 
 ## 安装依赖
 
@@ -65,6 +68,17 @@ python -m sec_financials.main fetch AMZN --start-year 2022 --start-quarter 1 --e
 # 使用累计数据（截至季度的9个月合计）
 python -m sec_financials.main fetch GOOG --year 2025 --quarter 3 --accumulated
 
+# 只获取年度数据（FY）
+python -m sec_financials.main fetch META --start-year 2024 --end-year 2025 --annual-only
+
+# 使用代理服务器
+python -m sec_financials.main fetch AAPL --year 2023 --proxy http://127.0.0.1:10808
+
+# 透视表功能
+python -m sec_financials.main fetch GOOGL --start-year 2015 --end-year 2024 --pivot  # 年度透视表
+python -m sec_financials.main fetch AAPL --year 2024 --pivot --period-type quarterly  # 季度透视表
+python -m sec_financials.main fetch MSFT --start-year 2020 --end-year 2023 --pivot --period-type annual  # 年度透视表
+
 # 搜索股票代码
 python -m sec_financials.main search AAP --limit 5
 
@@ -80,14 +94,35 @@ python -m sec_financials.main clear-cache
 ```python
 from sec_financials import SECFinancialExtractor
 
-# 初始化提取器
-extractor = SECFinancialExtractor()
+# 初始化提取器（支持代理）
+extractor = SECFinancialExtractor(proxy_url='http://127.0.0.1:10808')
 
-# 获取财务数据
+# 获取财务数据（基础用法）
 result = extractor.fetch_financial_data(
     ticker='AAPL',
     year=2023,
     output_dir='output'
+)
+
+# 获取财务数据（高级用法）
+result = extractor.fetch_financial_data(
+    ticker='GOOGL',
+    start_year=2015,
+    end_year=2024,
+    output_dir='output',
+    annual_only=True,      # 只获取年度数据
+    pivot=True,            # 导出为透视表格式
+    period_type='annual'   # 年度透视表
+)
+
+# 获取季度透视表数据
+result = extractor.fetch_financial_data(
+    ticker='AAPL',
+    year=2024,
+    quarter=4,
+    output_dir='output',
+    pivot=True,
+    period_type='quarterly'  # 季度透视表
 )
 
 # 搜索股票代码
@@ -104,13 +139,24 @@ available_indicators = extractor.get_available_indicators('GOOG')
 
 对于每个请求，工具会生成：
 
-1. **三个CSV文件**：
-   - `{TICKER}_{YEAR}_Balance_Sheet.csv` - 资产负债表
-   - `{TICKER}_{YEAR}_Income_Statement.csv` - 利润表
-   - `{TICKER}_{YEAR}_Cash_Flow.csv` - 现金流量表
+### 1. 标准格式CSV文件
+- `{TICKER}_{YEAR}_Balance_Sheet.csv` - 资产负债表
+- `{TICKER}_{YEAR}_Income_Statement.csv` - 利润表
+- `{TICKER}_{YEAR}_Cash_Flow.csv` - 现金流量表
 
-2. **汇总报告**：
-   - `{TICKER}_export_summary.txt` - 导出汇总信息
+### 2. 透视表格式CSV文件（使用 `--pivot` 参数时）
+- `{TICKER}_{YEAR}_Balance_Sheet_Pivot.csv` - 资产负债表透视表
+- `{TICKER}_{YEAR}_Income_Statement_Pivot.csv` - 利润表透视表
+- `{TICKER}_{YEAR}_Cash_Flow_Pivot.csv` - 现金流量表透视表
+
+**透视表格式特点**：
+- **列**：年份/季度（从左到右，由远及近）
+- **行**：指标（使用简洁财报命名）
+- **值**：数值（千分位分隔符，EPS保持2位小数）
+- **数据去重**：同一指标同一期间取最新filed日期的记录
+
+### 3. 汇总报告
+- `{TICKER}_export_summary.txt` - 导出汇总信息
 
 ## 支持的GAAP指标
 
@@ -269,6 +315,22 @@ python -m sec_financials.main fetch AAPL --year 2023
 ```
 
 ## 更新日志
+
+### 2026-03-06 v0.1.1-alpha 重要更新
+1. **透视表导出功能**：新增 `--pivot` 命令行参数，支持导出为透视表格式
+   - 列：年份/季度（从左到右，由远及近）
+   - 行：指标（使用简洁财报命名）
+   - 值：数值（千分位分隔符，EPS保持2位小数）
+2. **新增命令行参数**：
+   - `--proxy`：代理服务器支持（如 `http://127.0.0.1:10808`）
+   - `--annual-only`：只获取年度数据（FY）
+   - `--period-type`：透视表期间类型（annual/quarterly）
+3. **智能默认行为**：
+   - 年份范围模式（如 `--start-year 2020 --end-year 2023`）默认只返回年度数据
+   - 单年份模式（如 `--year 2023`）默认只返回年度数据
+4. **配置更新**：新增 `INDICATOR_SHORT_NAMES` 指标简称映射（约45个指标）
+5. **默认输出目录**：改为 `output` 目录
+6. **数据去重优化**：透视表数据去重逻辑，同一指标同一期间取最新filed日期的记录
 
 ### 2026-03-01 重要更新
 1. **添加累计数据开关**：新增 `--accumulated` 命令行参数，支持选择单季度数据或累计数据
