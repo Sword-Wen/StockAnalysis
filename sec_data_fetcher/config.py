@@ -34,9 +34,14 @@ GAAP_INDICATORS = {
         "IntangibleAssetsNetExcludingGoodwill",
         "Assets",
         # Liabilities (current then non-current)
-        "AccountsPayableCurrent",
-        "LiabilitiesCurrent",
-        "LongTermDebtNoncurrent",  # Changed from LongTermDebt to match 10-K value
+        # 流动负债 - 按流动性排序
+        "ShortTermBorrowingsDebt",  # 短期借款（有息）
+        "LongTermDebtCurrent",      # 一年内到期的非流动负债
+        "AccountsPayableCurrent",   # 应付账款
+        "LiabilitiesCurrent",       # 流动负债合计
+        # 非流动负债
+        "LongTermDebtNoncurrent",   # 长期借款（排除一年内到期）
+        # 负债合计
         "Liabilities",
         # Equity
         "RetainedEarningsAccumulatedDeficit",
@@ -110,6 +115,9 @@ INDICATOR_SHORT_NAMES = {
     "Assets": "Total Assets",
     "AccountsPayableCurrent": "Accounts Payable",
     "LiabilitiesCurrent": "Total Current Liabilities",
+    # 有息负债相关指标
+    "ShortTermBorrowingsDebt": "Short-term Debt",
+    "LongTermDebtCurrent": "Current Portion of Long-term Debt",
     "LongTermDebtNoncurrent": "Long-term Debt",
     "Liabilities": "Total Liabilities",
     "RetainedEarningsAccumulatedDeficit": "Retained Earnings",

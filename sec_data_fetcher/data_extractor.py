@@ -24,6 +24,18 @@ class DataExtractor:
         # Primary indicators are in GAAP_INDICATORS, these are alternatives
         self.indicator_aliases = {
             'BalanceSheet': {
+                'ShortTermBorrowingsDebt': [
+                    'ShortTermBorrowings',
+                    'DebtCurrent',
+                    'NotesPayableCurrent',
+                    'ShortTermDebt',
+                    'CurrentPortionOfLongTermDebt'
+                ],
+                'LongTermDebtCurrent': [
+                    'CurrentPortionOfLongTermDebt',
+                    'LongTermDebtCurrent',
+                    'DebtCurrentMaturitiesOfLongTermDebt'
+                ],
                 'LongTermDebtNoncurrent': [
                     'LongTermDebt',
                     'LongTermDebtExcludingCurrentMaturities',
