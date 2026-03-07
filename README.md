@@ -46,6 +46,20 @@ sec_data_fetcher/
 ├── main.py                 # 主程序/命令行接口
 ├── test.py                 # 测试脚本
 └── requirements.txt        # 依赖包列表
+
+tests/                      # 回归测试套件
+├── __init__.py             # 包初始化
+├── config.py               # 测试配置模块
+├── test_runner.py          # 回归测试运行器
+├── README.md               # 测试套件文档
+├── fixtures/               # 基准数据目录
+│   ├── googl_2025_full_year/   # 谷歌2025年全年基准数据
+│   ├── googl_2025_q3/          # 谷歌2025年Q3基准数据
+│   └── meta_2024_2025/         # Meta 2024-2025年基准数据
+└── test_cases/             # 测试用例定义
+    ├── googl_2025_full_year.py
+    ├── googl_2025_q3.py
+    └── meta_2024_2025.py
 ```
 
 ## 使用方法
