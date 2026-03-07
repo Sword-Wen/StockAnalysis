@@ -11,7 +11,7 @@ import logging
 # Add parent directory to path for testing
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sec_financials import SECFinancialExtractor
+from sec_data_fetcher import SECDataFetcher
 
 # Configure logging
 logging.basicConfig(
@@ -23,7 +23,7 @@ logging.basicConfig(
 def test_ticker_mapping():
     """Test ticker to CIK mapping"""
     print("Testing ticker mapping...")
-    extractor = SECFinancialExtractor()
+    extractor = SECDataFetcher()
     
     # Test known tickers
     test_tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
@@ -55,7 +55,7 @@ def test_fetch_single_year():
     print("Testing fetch for single year (AAPL 2023)...")
     print("="*60)
     
-    extractor = SECFinancialExtractor()
+    extractor = SECDataFetcher()
     
     try:
         result = extractor.fetch_financial_data(
@@ -92,7 +92,7 @@ def test_fetch_single_quarter():
     print("Testing fetch for single quarter (MSFT Q4 2023)...")
     print("="*60)
     
-    extractor = SECFinancialExtractor()
+    extractor = SECDataFetcher()
     
     try:
         result = extractor.fetch_financial_data(
@@ -122,7 +122,7 @@ def test_fetch_year_range():
     print("Testing fetch for year range (GOOGL 2021-2023)...")
     print("="*60)
     
-    extractor = SECFinancialExtractor()
+    extractor = SECDataFetcher()
     
     try:
         result = extractor.fetch_financial_data(
@@ -152,7 +152,7 @@ def test_fetch_quarter_range():
     print("Testing fetch for quarter range (AMZN Q1 2022 - Q4 2023)...")
     print("="*60)
     
-    extractor = SECFinancialExtractor()
+    extractor = SECDataFetcher()
     
     try:
         result = extractor.fetch_financial_data(
@@ -184,7 +184,7 @@ def test_invalid_ticker():
     print("Testing invalid ticker...")
     print("="*60)
     
-    extractor = SECFinancialExtractor()
+    extractor = SECDataFetcher()
     
     try:
         result = extractor.fetch_financial_data(
@@ -207,7 +207,7 @@ def test_cache_operations():
     print("Testing cache operations...")
     print("="*60)
     
-    extractor = SECFinancialExtractor()
+    extractor = SECDataFetcher()
     
     try:
         # First fetch should create cache

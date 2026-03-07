@@ -35,7 +35,7 @@ pip install requests pandas python-dateutil
 ## 项目结构
 
 ```
-sec_financials/
+sec_data_fetcher/
 ├── __init__.py              # 包初始化
 ├── config.py               # 配置文件（API端点、指标映射等）
 ├── client.py               # SEC API客户端
@@ -54,48 +54,48 @@ sec_financials/
 
 ```bash
 # 获取特定年份数据
-python -m sec_financials.main fetch AAPL --year 2023
+python -m sec_data_fetcher.main fetch AAPL --year 2023
 
 # 获取特定季度数据
-python -m sec_financials.main fetch MSFT --year 2023 --quarter 4
+python -m sec_data_fetcher.main fetch MSFT --year 2023 --quarter 4
 
 # 获取年份范围数据
-python -m sec_financials.main fetch GOOGL --start-year 2020 --end-year 2023
+python -m sec_data_fetcher.main fetch GOOGL --start-year 2020 --end-year 2023
 
 # 获取季度范围数据
-python -m sec_financials.main fetch AMZN --start-year 2022 --start-quarter 1 --end-year 2023 --end-quarter 4
+python -m sec_data_fetcher.main fetch AMZN --start-year 2022 --start-quarter 1 --end-year 2023 --end-quarter 4
 
 # 使用累计数据（截至季度的9个月合计）
-python -m sec_financials.main fetch GOOG --year 2025 --quarter 3 --accumulated
+python -m sec_data_fetcher.main fetch GOOG --year 2025 --quarter 3 --accumulated
 
 # 只获取年度数据（FY）
-python -m sec_financials.main fetch META --start-year 2024 --end-year 2025 --annual-only
+python -m sec_data_fetcher.main fetch META --start-year 2024 --end-year 2025 --annual-only
 
 # 使用代理服务器
-python -m sec_financials.main fetch AAPL --year 2023 --proxy http://127.0.0.1:10808
+python -m sec_data_fetcher.main fetch AAPL --year 2023 --proxy http://127.0.0.1:10808
 
 # 透视表功能
-python -m sec_financials.main fetch GOOGL --start-year 2015 --end-year 2024 --pivot  # 年度透视表
-python -m sec_financials.main fetch AAPL --year 2024 --pivot --period-type quarterly  # 季度透视表
-python -m sec_financials.main fetch MSFT --start-year 2020 --end-year 2023 --pivot --period-type annual  # 年度透视表
+python -m sec_data_fetcher.main fetch GOOGL --start-year 2015 --end-year 2024 --pivot  # 年度透视表
+python -m sec_data_fetcher.main fetch AAPL --year 2024 --pivot --period-type quarterly  # 季度透视表
+python -m sec_data_fetcher.main fetch MSFT --start-year 2020 --end-year 2023 --pivot --period-type annual  # 年度透视表
 
 # 搜索股票代码
-python -m sec_financials.main search AAP --limit 5
+python -m sec_data_fetcher.main search AAP --limit 5
 
 # 查看统计信息
-python -m sec_financials.main stats
+python -m sec_data_fetcher.main stats
 
 # 清除缓存
-python -m sec_financials.main clear-cache
+python -m sec_data_fetcher.main clear-cache
 ```
 
 ### Python API
 
 ```python
-from sec_financials import SECFinancialExtractor
+from sec_data_fetcher import SECDataFetcher
 
 # 初始化提取器（支持代理）
-extractor = SECFinancialExtractor(proxy_url='http://127.0.0.1:10808')
+extractor = SECDataFetcher(proxy_url='http://127.0.0.1:10808')
 
 # 获取财务数据（基础用法）
 result = extractor.fetch_financial_data(
@@ -247,8 +247,8 @@ available_indicators = extractor.get_available_indicators('GOOG')
 
 ```python
 # 查找特定公司的可用指标
-from sec_financials.client import SECClient
-from sec_financials.ticker_mapper import TickerMapper
+from sec_data_fetcher.client import SECClient
+from sec_data_fetcher.ticker_mapper import TickerMapper
 
 client = SECClient()
 mapper = TickerMapper()
@@ -268,7 +268,7 @@ for indicator in gaap_facts.keys():
 运行测试脚本验证功能：
 
 ```bash
-python sec_financials/test.py
+python sec_data_fetcher/test.py
 ```
 
 测试包括：
@@ -307,11 +307,11 @@ python sec_financials/test.py
 ```bash
 # Windows
 set LOG_LEVEL=DEBUG
-python -m sec_financials.main fetch AAPL --year 2023
+python -m sec_data_fetcher.main fetch AAPL --year 2023
 
 # Linux/Mac
 export LOG_LEVEL=DEBUG
-python -m sec_financials.main fetch AAPL --year 2023
+python -m sec_data_fetcher.main fetch AAPL --year 2023
 ```
 
 ## 更新日志

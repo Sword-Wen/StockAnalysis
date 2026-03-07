@@ -26,8 +26,8 @@ from .csv_exporter import CSVExporter
 from .config import USER_AGENT
 
 
-class SECFinancialExtractor:
-    """Main class for extracting financial data from SEC"""
+class SECDataFetcher:
+    """Main class for fetching financial data from SEC"""
     
     def __init__(self, user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
         """Initialize the extractor"""
@@ -331,7 +331,7 @@ Examples:
     args = parser.parse_args()
     
     try:
-        extractor = SECFinancialExtractor(
+        extractor = SECDataFetcher(
             user_agent=args.user_agent if hasattr(args, 'user_agent') else None,
             proxy_url=args.proxy if hasattr(args, 'proxy') else None
         )

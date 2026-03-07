@@ -24,7 +24,7 @@ from tests.config import (
 )
 
 # 导入真实数据提取器
-from sec_financials.main import SECFinancialExtractor
+from sec_data_fetcher.main import SECDataFetcher
 
 
 def safe_print(text: str):
@@ -165,7 +165,7 @@ class TestRunner:
         test_case.output_dir.mkdir(exist_ok=True)
         
         # 创建数据提取器实例
-        extractor = SECFinancialExtractor()
+        extractor = SECDataFetcher()
         
         # 确定输出目录（使用测试输出目录）
         output_dir = str(test_case.output_dir)

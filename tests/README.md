@@ -195,7 +195,7 @@ SEC财务数据回归测试运行器
 ============================================================
 执行数据提取: GOOGL 2025
 [WARN] 注意: 当前使用模拟数据提取
-实际使用时需要调用 sec_financials 模块的真实数据提取功能
+实际使用时需要调用 sec_data_fetcher 模块的真实数据提取功能
   复制基准数据: Balance_Sheet.csv
   复制基准数据: Cash_Flow.csv
   复制基准数据: Income_Statement.csv
@@ -322,9 +322,9 @@ test_case.custom_validators.append(custom_validator)
 ```python
 def _real_data_extraction(self, test_case: TestCase):
     """真实数据提取"""
-    from sec_financials import SECFinancialExtractor
+    from sec_data_fetcher import SECDataFetcher
     
-    extractor = SECFinancialExtractor()
+    extractor = SECDataFetcher()
     extractor.fetch_financial_data(
         ticker=test_case.ticker,
         year=test_case.year,

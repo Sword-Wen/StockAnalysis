@@ -104,12 +104,12 @@ def main():
         
         # 导入并运行主程序
         try:
-            from sec_financials.main import main as sec_main
+            from sec_data_fetcher.main import main as sec_main
             sec_main()
         except ImportError as e:
             print(f"导入错误: {e}")
             print("请确保从项目根目录运行:")
-            print("  python run_sec_financials.py")
+            print("  python run_sec_data_fetcher.py")
             return 1
     else:
         print(f"\n[X] 缺少 {len(missing_deps)} 个依赖包: {', '.join(missing_deps)}")
