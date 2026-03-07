@@ -44,3 +44,6 @@ output.bak/
 
 # Test output directory
 test_output/
+
+# Windows certificate files
+*.sst
