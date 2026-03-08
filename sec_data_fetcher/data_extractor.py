@@ -563,8 +563,17 @@ class DataExtractor:
                         # Extract year from end date
                         year = end.split('-')[0] if end else ''
                         key = (indicator, year)
-                        q3_accumulated_data_by_indicator[key] = point
-                        logger.debug(f"Q3 accumulated data for {indicator} at {end}: fp={fp}, frame={frame}, year={year}")
+                        # For Q3 accumulated data, keep the one with MAXIMUM value
+                        # This ensures we keep true accumulated data (Q1+Q2+Q3) over single-quarter data
+                        current_val = float(point.get('val', 0))
+                        if key in q3_accumulated_data_by_indicator:
+                            existing_val = float(q3_accumulated_data_by_indicator[key].get('val', 0))
+                            if current_val > existing_val:
+                                q3_accumulated_data_by_indicator[key] = point
+                                logger.debug(f"Q3 accumulated data for {indicator} at {end}: fp={fp}, frame={frame}, year={year} (updated with higher value {current_val})")
+                        else:
+                            q3_accumulated_data_by_indicator[key] = point
+                            logger.debug(f"Q3 accumulated data for {indicator} at {end}: fp={fp}, frame={frame}, year={year}")
                     elif frame and fp != 'FY':
                         # This is regular quarterly data
                         quarterly_data.append(point)
