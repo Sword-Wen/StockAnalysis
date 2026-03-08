@@ -282,7 +282,10 @@ class DataExtractor:
     
     def _deduplicate_data_points(self, data_points: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Remove duplicate data points where multiple configured indicators match the same SEC indicator
+        Remove duplicate data points with improved logic:
+        1. For the same date/indicator, prefer FY (annual) data over quarterly data
+        2. Prefer Q4 data over Q1-Q3 data
+        3. Among same type, keep the latest filed date
         
         Args:
             data_points: List of data point dictionaries
@@ -293,7 +296,6 @@ class DataExtractor:
             return []
         
         # Group data points by (date, indicator)
-        # Keep only the latest filed date for each group
         grouped_data = {}
         
         logger.debug(f"Starting deduplication with {len(data_points)} data points")
@@ -301,11 +303,9 @@ class DataExtractor:
         for point in data_points:
             date = point.get('end', '')
             indicator = point.get('indicator', '')
-            fiscal_year = point.get('fy', '')
-            filed_date = point.get('filed', '')
-            matched_indicator = point.get('matched_indicator', '')
-            value = point.get('val', '')
+            fp = point.get('fp', '')  # Fiscal period (FY, Q1, Q2, Q3, Q4)
             frame = point.get('frame', '')
+            filed_date = point.get('filed', '')
             
             # Create a grouping key: (date, indicator)
             group_key = (date, indicator)
@@ -316,36 +316,88 @@ class DataExtractor:
             except (ValueError, KeyError):
                 filed_datetime = None
             
-            # If this group already has an entry, keep the one with the latest filed date
+            # Determine data point priority
+            # Priority order: FY (annual) > Q4 > Q3 > Q2 > Q1 > others
+            if fp == 'FY':
+                priority = 1  # Highest priority - annual data
+            elif fp == 'Q4':
+                priority = 2  # Q4 data (year-end quarterly)
+            elif fp == 'Q3':
+                priority = 3
+            elif fp == 'Q2':
+                priority = 4
+            elif fp == 'Q1':
+                priority = 5
+            else:
+                priority = 6  # Other/unknown
+            
+            # Also check frame for Q4 indication
+            if frame and 'Q4' in frame:
+                priority = min(priority, 2)  # Q4 frame has high priority
+            
+            # If this group already has an entry, decide which one to keep
             if group_key in grouped_data:
                 existing_point = grouped_data[group_key]
+                existing_fp = existing_point.get('fp', '')
+                existing_frame = existing_point.get('frame', '')
                 existing_filed = existing_point.get('filed', '')
-                existing_filed_datetime = None
                 
+                # Determine existing point priority
+                if existing_fp == 'FY':
+                    existing_priority = 1
+                elif existing_fp == 'Q4':
+                    existing_priority = 2
+                elif existing_fp == 'Q3':
+                    existing_priority = 3
+                elif existing_fp == 'Q2':
+                    existing_priority = 4
+                elif existing_fp == 'Q1':
+                    existing_priority = 5
+                else:
+                    existing_priority = 6
+                
+                # Also check frame for Q4 indication
+                if existing_frame and 'Q4' in existing_frame:
+                    existing_priority = min(existing_priority, 2)
+                
+                # Parse existing filed date
                 try:
                     existing_filed_datetime = TimeProcessor.parse_date(existing_filed) if existing_filed else None
                 except (ValueError, KeyError):
                     existing_filed_datetime = None
                 
-                # Compare filed dates
-                if filed_datetime and existing_filed_datetime:
-                    if filed_datetime > existing_filed_datetime:
-                        # New point has later filed date, replace
-                        grouped_data[group_key] = point
-                        logger.debug(f"  Replacing: {indicator} at {date} - newer filed date: {filed_date} > {existing_filed}")
-                    else:
-                        logger.debug(f"  Keeping existing: {indicator} at {date} - older filed date: {filed_date} <= {existing_filed}")
-                elif filed_datetime and not existing_filed_datetime:
-                    # New point has filed date, existing doesn't, replace
+                # Decision logic:
+                # 1. Higher priority data wins (FY > Q4 > Q3 > Q2 > Q1 > others)
+                # 2. If same priority, keep the one with later filed date
+                # 3. If same priority and no filed date, keep the first one
+                
+                if priority < existing_priority:
+                    # New point has higher priority (lower number = higher priority)
                     grouped_data[group_key] = point
-                    logger.debug(f"  Replacing: {indicator} at {date} - has filed date: {filed_date}")
+                    logger.debug(f"  Replacing: {indicator} at {date} - higher priority: {fp}({priority}) > {existing_fp}({existing_priority})")
+                elif priority > existing_priority:
+                    # Existing point has higher priority, keep it
+                    logger.debug(f"  Keeping existing: {indicator} at {date} - higher priority: {existing_fp}({existing_priority}) > {fp}({priority})")
                 else:
-                    # Keep existing (either both have no filed date or existing is newer)
-                    logger.debug(f"  Keeping existing: {indicator} at {date}")
+                    # Same priority, compare filed dates
+                    if filed_datetime and existing_filed_datetime:
+                        if filed_datetime > existing_filed_datetime:
+                            # New point has later filed date, replace
+                            grouped_data[group_key] = point
+                            logger.debug(f"  Replacing: {indicator} at {date} - same priority, newer filed date: {filed_date} > {existing_filed}")
+                        else:
+                            logger.debug(f"  Keeping existing: {indicator} at {date} - same priority, older filed date: {filed_date} <= {existing_filed}")
+                    elif filed_datetime and not existing_filed_datetime:
+                        # New point has filed date, existing doesn't, replace
+                        grouped_data[group_key] = point
+                        logger.debug(f"  Replacing: {indicator} at {date} - same priority, has filed date: {filed_date}")
+                    else:
+                        # Keep existing (either both have no filed date or existing is newer)
+                        logger.debug(f"  Keeping existing: {indicator} at {date} - same priority")
             else:
                 # First entry for this group
                 grouped_data[group_key] = point
-                logger.debug(f"  Adding: {indicator} at {date} - filed: {filed_date}")
+                logger.debug(f"  Adding: {indicator} at {date} - fp: {fp}, frame: {frame}, filed: {filed_date}")
         
         # Convert back to list
         deduplicated = list(grouped_data.values())
@@ -501,44 +553,143 @@ class DataExtractor:
                     
                     if fp == 'FY' and '12-31' in end:
                         # This is annual FY data (year-end)
-                        fy_data_by_indicator[indicator] = point
+                        # Extract year from end date
+                        year = end.split('-')[0] if end else ''
+                        key = (indicator, year)
+                        fy_data_by_indicator[key] = point
+                        logger.debug(f"FY data for {indicator} at {end}: fp={fp}, frame={frame}, year={year}")
                     elif fp == 'Q3' and not frame:
                         # This is Q3 accumulated data (Q1+Q2+Q3)
-                        q3_accumulated_data_by_indicator[indicator] = point
+                        # Extract year from end date
+                        year = end.split('-')[0] if end else ''
+                        key = (indicator, year)
+                        q3_accumulated_data_by_indicator[key] = point
+                        logger.debug(f"Q3 accumulated data for {indicator} at {end}: fp={fp}, frame={frame}, year={year}")
                     elif frame and fp != 'FY':
                         # This is regular quarterly data
                         quarterly_data.append(point)
                 
                 logger.debug(f"Found {len(quarterly_data)} quarterly data points, {len(fy_data_by_indicator)} FY data points, {len(q3_accumulated_data_by_indicator)} Q3 accumulated data points")
+                logger.debug(f"FY data indicators: {list(fy_data_by_indicator.keys())}")
+                logger.debug(f"Q3 accumulated data indicators: {list(q3_accumulated_data_by_indicator.keys())}")
                 
                 # Second pass: calculate Q4 data if missing
-                for indicator, fy_point in fy_data_by_indicator.items():
-                    # Check if we already have Q4 data for this indicator
+                for (indicator, year_key), fy_point in fy_data_by_indicator.items():
+                    # Check if we already have Q4 data for this indicator and year
                     has_q4 = False
                     for q_point in quarterly_data:
-                        if q_point.get('indicator') == indicator and q_point.get('end', '').endswith('12-31'):
+                        if (q_point.get('indicator') == indicator and 
+                            q_point.get('end', '').endswith('12-31') and
+                            q_point.get('end', '').startswith(year_key)):
                             has_q4 = True
+                            logger.debug(f"Indicator {indicator} already has Q4 data at {q_point.get('end')}")
                             break
                     
-                    if not has_q4 and indicator in q3_accumulated_data_by_indicator:
+                    q3_key = (indicator, year_key)
+                    if not has_q4 and q3_key in q3_accumulated_data_by_indicator:
                         # Calculate Q4 = FY - Q3 accumulated
                         try:
                             fy_value = float(fy_point.get('val', 0))
-                            q3_accumulated_value = float(q3_accumulated_data_by_indicator[indicator].get('val', 0))
+                            q3_accumulated_value = float(q3_accumulated_data_by_indicator[q3_key].get('val', 0))
                             q4_value = fy_value - q3_accumulated_value
                             
-                            if q4_value > 0:  # Only add if positive
-                                # Create Q4 data point
-                                q4_point = fy_point.copy()
-                                q4_point['val'] = q4_value
-                                q4_point['fp'] = 'Q4'
-                                q4_point['frame'] = 'CY2025Q4'  # Add frame for Q4
-                                q4_point['form'] = '10-K'  # Derived from 10-K
-                                
-                                logger.debug(f"Calculated Q4 data for {indicator}: FY={fy_value}, Q3_accumulated={q3_accumulated_value}, Q4={q4_value}")
-                                quarterly_data.append(q4_point)
+                            # Create Q4 data point (allow negative values for expenses)
+                            q4_point = fy_point.copy()
+                            q4_point['val'] = q4_value
+                            q4_point['fp'] = 'Q4'
+                            
+                            # Determine correct frame based on year
+                            end_date = fy_point.get('end', '')
+                            if '2024' in end_date:
+                                q4_point['frame'] = 'CY2024Q4'
+                            elif '2025' in end_date:
+                                q4_point['frame'] = 'CY2025Q4'
+                            else:
+                                # Extract year from date
+                                year = end_date.split('-')[0]
+                                q4_point['frame'] = f'CY{year}Q4'
+                            
+                            q4_point['form'] = '10-K'  # Derived from 10-K
+                            
+                            logger.debug(f"Calculated Q4 data for {indicator} year {year_key}: FY={fy_value}, Q3_accumulated={q3_accumulated_value}, Q4={q4_value}")
+                            quarterly_data.append(q4_point)
                         except (ValueError, TypeError) as e:
-                            logger.warning(f"Failed to calculate Q4 data for {indicator}: {e}")
+                            logger.warning(f"Failed to calculate Q4 data for {indicator} year {year_key}: {e}")
+                    elif not has_q4:
+                        logger.debug(f"Indicator {indicator} year {year_key} has no Q3 accumulated data, cannot calculate Q4")
+                
+                # Special handling for Revenues indicator
+                # If we have RevenueFromContractWithCustomerExcludingAssessedTax Q4 data but not Revenues Q4 data,
+                # we can use the RevenueFromContractWithCustomerExcludingAssessedTax Q4 data for Revenues
+                # Also handle the case where Revenues has Q3 accumulated data but no Q4 data
+                # We need to check for each year separately
+                for (indicator, year_key), fy_point in fy_data_by_indicator.items():
+                    if indicator == 'Revenues':
+                        # Check if we already have Revenues Q4 data for this year
+                        fy_end_date = fy_point.get('end', '')
+                        fy_year = year_key
+                        
+                        logger.debug(f"Checking Revenues Q4 data for year {fy_year}, fy_end_date={fy_end_date}")
+                        
+                        has_revenues_q4_for_year = False
+                        for q_point in quarterly_data:
+                            if (q_point.get('indicator') == 'Revenues' and 
+                                q_point.get('end', '').endswith('12-31') and
+                                q_point.get('end', '').startswith(fy_year)):
+                                has_revenues_q4_for_year = True
+                                logger.debug(f"Found Revenues Q4 data for year {fy_year}: {q_point.get('end')}")
+                                break
+                        
+                        if not has_revenues_q4_for_year:
+                            logger.debug(f"No Revenues Q4 data found for year {fy_year}, looking for RevenueFromContractWithCustomerExcludingAssessedTax Q4 data")
+                            # Try to find RevenueFromContractWithCustomerExcludingAssessedTax Q4 data for the same year
+                            for q_point in quarterly_data:
+                                logger.debug(f"Checking quarterly data point: indicator={q_point.get('indicator')}, end={q_point.get('end')}, fp={q_point.get('fp')}")
+                                if (q_point.get('indicator') == 'RevenueFromContractWithCustomerExcludingAssessedTax' and 
+                                    q_point.get('end', '').endswith('12-31') and
+                                    q_point.get('end', '').startswith(fy_year) and
+                                    q_point.get('fp') == 'Q4'):
+                                    # Use this data for Revenues as well
+                                    revenues_q4_point = q_point.copy()
+                                    revenues_q4_point['indicator'] = 'Revenues'
+                                    revenues_q4_point['label'] = 'Revenues'
+                                    quarterly_data.append(revenues_q4_point)
+                                    logger.debug(f"Using RevenueFromContractWithCustomerExcludingAssessedTax Q4 data for Revenues indicator for year {fy_year}")
+                                    break
+                            else:
+                                # If no RevenueFromContractWithCustomerExcludingAssessedTax Q4 data, try to calculate Revenues Q4
+                                logger.debug(f"No RevenueFromContractWithCustomerExcludingAssessedTax Q4 data found for year {fy_year}")
+                                q3_key = ('Revenues', fy_year)
+                                if q3_key in q3_accumulated_data_by_indicator:
+                                    try:
+                                        fy_value = float(fy_point.get('val', 0))
+                                        q3_accumulated_value = float(q3_accumulated_data_by_indicator[q3_key].get('val', 0))
+                                        q4_value = fy_value - q3_accumulated_value
+                                        
+                                        # Create Q4 data point
+                                        q4_point = fy_point.copy()
+                                        q4_point['val'] = q4_value
+                                        q4_point['fp'] = 'Q4'
+                                        
+                                        # Determine correct frame based on year
+                                        end_date = q4_point.get('end', '')
+                                        if '2024' in end_date:
+                                            q4_point['frame'] = 'CY2024Q4'
+                                        elif '2025' in end_date:
+                                            q4_point['frame'] = 'CY2025Q4'
+                                        else:
+                                            # Extract year from date
+                                            year = end_date.split('-')[0]
+                                            q4_point['frame'] = f'CY{year}Q4'
+                                        
+                                        q4_point['form'] = '10-K'  # Derived from 10-K
+                                        
+                                        logger.debug(f"Calculated Revenues Q4 data for year {fy_year}: FY={fy_value}, Q3_accumulated={q3_accumulated_value}, Q4={q4_value}")
+                                        quarterly_data.append(q4_point)
+                                    except (ValueError, TypeError) as e:
+                                        logger.warning(f"Failed to calculate Revenues Q4 data for year {fy_year}: {e}")
+                                else:
+                                    logger.debug(f"No Q3 accumulated data for Revenues year {fy_year}, cannot calculate Q4")
                 
                 filtered_data = quarterly_data
                 logger.debug(f"Income statement after quarterly filter: {len(filtered_data)} data points (quarterly data with calculated Q4)")
