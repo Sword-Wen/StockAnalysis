@@ -472,6 +472,7 @@ class CSVExporter:
         
         对于同一指标同一期间，取最新filed日期的记录
         如果filed日期相同，取最新的Fiscal Year
+        重要：区分FY（年度）和Q4（季度）数据
         
         Args:
             formatted_data: List of formatted data dictionaries
@@ -487,6 +488,7 @@ class CSVExporter:
             date_str = item.get('Date', '')
             filed_date = item.get('Filed', '')
             fiscal_year = item.get('Fiscal Year', '')
+            fiscal_period = item.get('Fiscal Period', '')  # FY, Q1, Q2, Q3, Q4
             
             if not indicator or not date_str:
                 continue
@@ -497,11 +499,25 @@ class CSVExporter:
                 month = int(date_str[5:7])
                 day = int(date_str[8:10])
                 
-                # 确定期间
-                period_key = f"{year}-12-31"  # 年度数据
+                # 确定期间 - 关键：区分FY（年度）和Q4（季度）数据
+                # 对于12月的数据，需要根据Fiscal Period区分：
+                # - fp='FY': 年度数据 -> period_key = "2024" (用于年度透视表)
+                # - fp='Q4': 季度数据 -> period_key = "2024Q4" (用于季度透视表)
+                # - 没有fp或fp为空: 默认视为年度数据（兼容旧数据）
                 
-                # 季度数据：如果月份不是12月，则视为季度数据
-                if month != 12:
+                if month == 12:
+                    # 12月的数据可能是FY（年度）或Q4（季度）
+                    if fiscal_period == 'FY':
+                        # 年度数据
+                        period_key = f"{year}FY"
+                    elif fiscal_period == 'Q4':
+                        # Q4季度数据
+                        period_key = f"{year}Q4"
+                    else:
+                        # 没有明确的fp，默认视为年度数据（兼容）
+                        period_key = f"{year}"
+                else:
+                    # 非12月的数据，视为季度数据
                     quarter = (month - 1) // 3 + 1
                     period_key = f"{year}Q{quarter}"
             except (ValueError, IndexError):
@@ -520,6 +536,7 @@ class CSVExporter:
                 existing_item = grouped_data[group_key]
                 existing_filed = existing_item.get('Filed', '')
                 existing_fiscal_year = existing_item.get('Fiscal Year', '')
+                existing_fiscal_period = existing_item.get('Fiscal Period', '')
                 
                 try:
                     existing_filed_datetime = datetime.strptime(existing_filed, "%Y-%m-%d") if existing_filed else None
@@ -527,23 +544,35 @@ class CSVExporter:
                     existing_filed_datetime = None
                 
                 # 比较规则：
-                # 1. 优先使用最新filed日期的记录
-                # 2. 如果filed日期相同，使用最新的Fiscal Year
+                # 1. 优先使用FY（年度）数据而不是Q4（季度）数据（年度数据更完整准确）
+                # 2. 如果类型相同，优先使用最新filed日期的记录
+                # 3. 如果filed日期相同，使用最新的Fiscal Year
                 should_replace = False
                 
-                if filed_datetime and existing_filed_datetime:
-                    if filed_datetime > existing_filed_datetime:
-                        should_replace = True
-                    elif filed_datetime == existing_filed_datetime:
-                        # filed日期相同，比较Fiscal Year
-                        try:
-                            if int(fiscal_year) > int(existing_fiscal_year):
-                                should_replace = True
-                        except (ValueError, TypeError):
-                            pass
-                elif filed_datetime and not existing_filed_datetime:
-                    # 新记录有filed日期，旧记录没有，替换
+                # 首先检查数据类型优先级：FY > Q4 > Q3 > Q2 > Q1
+                period_priority = {'FY': 1, 'Q4': 2, 'Q3': 3, 'Q2': 4, 'Q1': 5}
+                current_priority = period_priority.get(fiscal_period, 10)
+                existing_priority = period_priority.get(existing_fiscal_period, 10)
+                
+                if current_priority < existing_priority:
+                    # 新数据类型优先级更高（如FY > Q4）
                     should_replace = True
+                elif current_priority == existing_priority:
+                    # 类型相同，比较filed日期
+                    if filed_datetime and existing_filed_datetime:
+                        if filed_datetime > existing_filed_datetime:
+                            should_replace = True
+                        elif filed_datetime == existing_filed_datetime:
+                            # filed日期相同，比较Fiscal Year
+                            try:
+                                if int(fiscal_year) > int(existing_fiscal_year):
+                                    should_replace = True
+                            except (ValueError, TypeError):
+                                pass
+                    elif filed_datetime and not existing_filed_datetime:
+                        # 新记录有filed日期，旧记录没有，替换
+                        should_replace = True
+                # else: 类型优先级更低，不替换
                 
                 if should_replace:
                     grouped_data[group_key] = item
@@ -579,6 +608,7 @@ class CSVExporter:
             indicator = item.get('Indicator', '')
             date_str = item.get('Date', '')
             value_str = item.get('Value', '')
+            fiscal_period = item.get('Fiscal Period', '')  # FY, Q1, Q2, Q3, Q4
             
             if not indicator or not date_str:
                 continue
@@ -592,13 +622,33 @@ class CSVExporter:
                 day = int(date_str[8:10])
                 
                 # 确定期间
+                # 注意：去重后，period_key 可能是 "2024FY" 或 "2024Q4" 格式
+                # 需要根据 period_type 和 fiscal_period 来确定最终显示的期间
                 if period_type == 'annual':
-                    # 年度数据：使用年份
-                    period = str(year)
+                    # 年度透视表：只显示年度数据
+                    # 使用 "FY" 后缀来标识年度数据
+                    if fiscal_period == 'FY':
+                        period = f"{year}FY"
+                    else:
+                        # 对于非FY数据，如果是12月且没有明确fp，不显示
+                        continue
                 else:
-                    # 季度数据
-                    quarter = (month - 1) // 3 + 1
-                    period = f"{year}Q{quarter}"
+                    # 季度透视表
+                    # 首先检查是否有Q1-Q4季度数据
+                    if fiscal_period in ('Q1', 'Q2', 'Q3', 'Q4'):
+                        period = f"{year}{fiscal_period}"
+                    elif fiscal_period == 'FY':
+                        # FY数据：也显示在季度透视表中（用于年度对比）
+                        # 但使用不同的格式来区分
+                        period = f"{year}FY"
+                    else:
+                        # 没有明确fp，根据月份判断
+                        if month == 12:
+                            # 12月但没有明确fp，视为年度数据
+                            period = f"{year}FY"
+                        else:
+                            quarter = (month - 1) // 3 + 1
+                            period = f"{year}Q{quarter}"
                 
                 # 清理数值（移除千位分隔符和引号）
                 # 首先确保value_str是字符串类型
@@ -633,10 +683,25 @@ class CSVExporter:
         
         # 按顺序排序
         if period_type == 'annual':
-            periods = sorted(periods_set, key=lambda x: int(x))
+            # 年度数据排序：支持 "2024" 和 "2024FY" 格式
+            def annual_sort_key(x):
+                if x.endswith('FY'):
+                    return int(x[:-2])
+                return int(x)
+            periods = sorted(periods_set, key=annual_sort_key)
         else:
             # 季度数据排序：先按年份，再按季度
-            periods = sorted(periods_set, key=lambda x: (int(x[:4]), int(x[5:])))
+            # 支持 "2024Q1", "2024Q2", "2024Q3", "2024Q4", "2024FY" 格式
+            def quarterly_sort_key(x):
+                year = int(x[:4])
+                # 提取季度部分：Q1-Q4 或 FY
+                if x.endswith('FY'):
+                    # FY数据排在最前面（年度数据）
+                    quarter = 0
+                else:
+                    quarter = int(x[5:])
+                return (year, quarter)
+            periods = sorted(periods_set, key=quarterly_sort_key)
         
         # 使用GAAP顺序排序指标，如果没有顺序则按字母排序
         if gaap_order:
