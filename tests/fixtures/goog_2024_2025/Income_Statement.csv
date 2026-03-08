@@ -1,0 +1,97 @@
+Date,Indicator,Label,Value,Unit,Accumulated,Fiscal Year,Fiscal Period,Form,Filed,Frame,Company Name,Ticker,CIK,SIC,SIC Description,Year,Month,Day,Quarter
+2025-12-31,Revenues,Revenues,"113,829",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,CostOfGoodsAndServicesSold,Cost of Revenue,"45,767",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,ResearchAndDevelopmentExpense,Research and Development Expense,"18,572",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"8,215",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,GeneralAndAdministrativeExpense,General and Administrative Expense,"5,341",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,OperatingIncomeLoss,Operating Income (Loss),"35,934",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","39,117",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"4,662",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"34,455",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,EarningsPerShareBasic,"Earnings Per Share, Basic",2.8499999999999996,USD/shares,0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-12-31,EarningsPerShareDiluted,"Earnings Per Share, Diluted",2.8200000000000003,USD/shares,0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2025Q4,ALPHABET INC.,,1652044,,,2025,12,31,Q4
+2025-09-30,Revenues,Revenues,"102,346",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,CostOfGoodsAndServicesSold,Cost of Revenue,"41,369",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,ResearchAndDevelopmentExpense,Research and Development Expense,"15,151",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"7,205",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,GeneralAndAdministrativeExpense,General and Administrative Expense,"7,393",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,OperatingIncomeLoss,Operating Income (Loss),"31,228",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","43,987",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"9,008",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"34,979",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,EarningsPerShareBasic,"Earnings Per Share, Basic",2.89,USD/shares,0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-09-30,EarningsPerShareDiluted,"Earnings Per Share, Diluted",2.87,USD/shares,0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2025Q3,ALPHABET INC.,,1652044,,,2025,9,30,Q3
+2025-06-30,Revenues,Revenues,"96,428",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,CostOfGoodsAndServicesSold,Cost of Revenue,"39,039",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,ResearchAndDevelopmentExpense,Research and Development Expense,"13,808",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"7,101",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,GeneralAndAdministrativeExpense,General and Administrative Expense,"5,209",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,OperatingIncomeLoss,Operating Income (Loss),"31,271",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","33,933",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"5,737",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"28,196",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,EarningsPerShareBasic,"Earnings Per Share, Basic",2.33,USD/shares,0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-06-30,EarningsPerShareDiluted,"Earnings Per Share, Diluted",2.31,USD/shares,0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2025Q2,ALPHABET INC.,,1652044,,,2025,6,30,Q2
+2025-03-31,RevenueFromContractWithCustomerExcludingAssessedTax,"Revenue from Contract with Customer, Excluding Assessed Tax","90,234",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,CostOfGoodsAndServicesSold,Cost of Revenue,"36,361",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,ResearchAndDevelopmentExpense,Research and Development Expense,"13,556",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"6,172",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,GeneralAndAdministrativeExpense,General and Administrative Expense,"3,539",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,DepreciationDepletionAndAmortization,"Accumulated Depreciation, Depletion and Amortization, Property, Plant, and Equipment","83,778",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1I,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,OperatingIncomeLoss,Operating Income (Loss),"30,606",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","41,789",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"7,249",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"34,540",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,EarningsPerShareBasic,"Earnings Per Share, Basic",2.84,USD/shares,0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2025-03-31,EarningsPerShareDiluted,"Earnings Per Share, Diluted",2.81,USD/shares,0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2025Q1,ALPHABET INC.,,1652044,,,2025,3,31,Q1
+2024-12-31,DepreciationDepletionAndAmortization,"Accumulated Depreciation, Depletion and Amortization, Property, Plant, and Equipment","79,390",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q4I,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,Revenues,Revenues,"96,469",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,RevenueFromContractWithCustomerExcludingAssessedTax,"Revenue from Contract with Customer, Excluding Assessed Tax","96,469",USD(Millions),0001652044-25-000014,2024,Q4,10-K,2025-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,CostOfGoodsAndServicesSold,Cost of Revenue,"40,613",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,ResearchAndDevelopmentExpense,Research and Development Expense,"13,116",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"7,363",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,GeneralAndAdministrativeExpense,General and Administrative Expense,"4,405",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,OperatingIncomeLoss,Operating Income (Loss),"30,972",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","32,243",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"5,707",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"26,536",USD(Millions),0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,EarningsPerShareBasic,"Earnings Per Share, Basic",2.170000000000001,USD/shares,0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-12-31,EarningsPerShareDiluted,"Earnings Per Share, Diluted",2.139999999999999,USD/shares,0001652044-26-000018,2025,Q4,10-K,2026-02-05,CY2024Q4,ALPHABET INC.,,1652044,,,2024,12,31,Q4
+2024-09-30,Revenues,Revenues,"88,268",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,RevenueFromContractWithCustomerExcludingAssessedTax,"Revenue from Contract with Customer, Excluding Assessed Tax","88,268",USD(Millions),0001652044-24-000118,2024,Q3,10-Q,2024-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,CostOfGoodsAndServicesSold,Cost of Revenue,"36,474",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,ResearchAndDevelopmentExpense,Research and Development Expense,"12,447",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"7,227",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,GeneralAndAdministrativeExpense,General and Administrative Expense,"3,599",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,OperatingIncomeLoss,Operating Income (Loss),"28,521",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","31,706",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"5,405",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"26,301",USD(Millions),0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,EarningsPerShareBasic,"Earnings Per Share, Basic",2.14,USD/shares,0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-09-30,EarningsPerShareDiluted,"Earnings Per Share, Diluted",2.12,USD/shares,0001652044-25-000091,2025,Q3,10-Q,2025-10-30,CY2024Q3,ALPHABET INC.,,1652044,,,2024,9,30,Q3
+2024-06-30,Revenues,Revenues,"84,742",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,RevenueFromContractWithCustomerExcludingAssessedTax,"Revenue from Contract with Customer, Excluding Assessed Tax","84,742",USD(Millions),0001652044-24-000079,2024,Q2,10-Q,2024-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,CostOfGoodsAndServicesSold,Cost of Revenue,"35,507",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,ResearchAndDevelopmentExpense,Research and Development Expense,"11,860",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"6,792",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,GeneralAndAdministrativeExpense,General and Administrative Expense,"3,158",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,DepreciationDepletionAndAmortization,"Accumulated Depreciation, Depletion and Amortization, Property, Plant, and Equipment","72,816",USD(Millions),0001652044-24-000079,2024,Q2,10-Q,2024-07-24,CY2024Q2I,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,OperatingIncomeLoss,Operating Income (Loss),"27,425",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","27,551",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"3,932",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"23,619",USD(Millions),0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,EarningsPerShareBasic,"Earnings Per Share, Basic",1.91,USD/shares,0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-06-30,EarningsPerShareDiluted,"Earnings Per Share, Diluted",1.89,USD/shares,0001652044-25-000062,2025,Q2,10-Q,2025-07-24,CY2024Q2,ALPHABET INC.,,1652044,,,2024,6,30,Q2
+2024-03-31,RevenueFromContractWithCustomerExcludingAssessedTax,"Revenue from Contract with Customer, Excluding Assessed Tax","80,539",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,CostOfGoodsAndServicesSold,Cost of Revenue,"33,712",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,ResearchAndDevelopmentExpense,Research and Development Expense,"11,903",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,SellingGeneralAndAdministrativeExpense,Selling and Marketing Expense,"6,426",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,GeneralAndAdministrativeExpense,General and Administrative Expense,"3,026",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,DepreciationDepletionAndAmortization,"Accumulated Depreciation, Depletion and Amortization, Property, Plant, and Equipment","70,004",USD(Millions),0001652044-24-000053,2024,Q1,10-Q,2024-04-26,CY2024Q1I,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,OperatingIncomeLoss,Operating Income (Loss),"25,472",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,InterestExpense,Interest Expense,94,USD(Millions),0001652044-24-000053,2024,Q1,10-Q,2024-04-26,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest,"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","28,315",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,IncomeTaxExpenseBenefit,Income Tax Expense (Benefit),"4,653",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,NetIncomeLoss,Net Income (Loss) Attributable to Parent,"23,662",USD(Millions),0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,EarningsPerShareBasic,"Earnings Per Share, Basic",1.91,USD/shares,0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
+2024-03-31,EarningsPerShareDiluted,"Earnings Per Share, Diluted",1.89,USD/shares,0001652044-25-000043,2025,Q1,10-Q,2025-04-25,CY2024Q1,ALPHABET INC.,,1652044,,,2024,3,31,Q1
