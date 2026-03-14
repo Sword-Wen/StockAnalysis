@@ -1,8 +1,39 @@
-# SEC Financial Data Extractor
+# Stock Analysis
 
-一个Python工具，用于通过SEC REST API获取美股财报数据，包括资产负债表、利润表和现金流量表。
+一个Python工具集，用于获取和分析美股财报数据。项目采用分层架构设计，包含底层数据获取层和上层分析应用层。
+
+## 工具架构
+
+本项目采用两层架构设计：
+
+```
+┌─────────────────────────────────────────┐
+│         stock_analyzer (上层应用)         │
+│   核心财务指标计算与分析                   │
+│   - 营收、净利润、毛利率等                 │
+│   - ROE、ROA、自由现金流等                 │
+│   - 同比增长率分析                         │
+└─────────────────┬───────────────────────┘
+                  │ 使用 SECDataFetcher 获取原始数据
+                  ▼
+┌─────────────────────────────────────────┐
+│      sec_data_fetcher (底层数据获取层)     │
+│   SEC API 原始财报数据获取                 │
+│   - 资产负债表、利润表、现金流量表          │
+│   - 智能指标匹配、数据去重                 │
+│   - 缓存机制、代理支持                     │
+└─────────────────────────────────────────┘
+```
+
+### 层次说明
+
+- **sec_data_fetcher（底层）**：负责从SEC REST API获取美股财报原始数据，包括资产负债表、利润表和现金流量表。支持智能指标匹配、数据去重、缓存机制等核心功能。
+
+- **stock_analyzer（上层）**：基于`sec_data_fetcher`获取的原始财报数据，计算并导出常用的核心财务指标。如营收、净利润、毛利率、ROE、ROA、自由现金流、股东回报等，并支持同比增长率计算。
 
 ## 功能特性
+
+### sec_data_fetcher 功能
 
 - ✅ **股票代码自动转换**：优先使用股票代码（如AAPL），内部自动转换为CIK
 - ✅ **多种时间过滤模式**：
@@ -21,6 +52,18 @@
 - ✅ **代理支持**：支持通过代理服务器访问SEC API
 - ✅ **智能默认行为**：年份范围模式默认只返回年度数据
 
+### stock_analyzer 功能
+
+- ✅ **核心财务指标计算**：自动计算营收、归母净利润、毛利率、运营利润率、净利率等
+- ✅ **盈利能力分析**：计算ROE（净资产收益率）、ROA（总资产收益率）
+- ✅ **现金流分析**：计算经营现金流、自由现金流、净现比
+- ✅ **增长分析**：计算营收同比增长率、净利润同比增长率
+- ✅ **股东回报分析**：计算股东回报（分红+回购）、有息负债
+- ✅ **智能指标匹配**：支持多种SEC指标别名映射，兼容不同公司的报告格式
+- ✅ **中文输出**：CSV列名使用中文，便于阅读
+- ✅ **命令行接口**：简单易用的CLI工具
+- ✅ **Python API**：支持程序化调用
+
 ## 安装依赖
 
 项目使用Python 3.7+，需要以下依赖：
@@ -35,28 +78,35 @@ pip install requests pandas python-dateutil
 ## 项目结构
 
 ```
-sec_data_fetcher/
-├── __init__.py              # 包初始化
-├── config.py               # 配置文件（API端点、指标映射等）
-├── client.py               # SEC API客户端
-├── ticker_mapper.py        # 股票代码↔CIK映射器
-├── data_extractor.py       # 财报数据提取器（包含智能匹配逻辑）
-├── time_processor.py       # 时间范围处理器
-├── csv_exporter.py         # CSV导出器
-├── main.py                 # 主程序/命令行接口
-├── test.py                 # 测试脚本
-└── requirements.txt        # 依赖包列表
+stock_analyzer/                 # 上层应用：财务指标分析
+├── __init__.py                # 包初始化
+├── __main__.py                # 模块入口
+├── analyzer.py                # 核心分析模块（StockAnalyzer类）
+├── config.py                  # 配置文件
+└── main.py                    # 命令行接口
 
-tests/                      # 回归测试套件
-├── __init__.py             # 包初始化
-├── config.py               # 测试配置模块
-├── test_runner.py          # 回归测试运行器
-├── README.md               # 测试套件文档
-├── fixtures/               # 基准数据目录
-│   ├── googl_2025_full_year/   # 谷歌2025年全年基准数据
-│   ├── googl_2025_q3/          # 谷歌2025年Q3基准数据
-│   └── meta_2024_2025/         # Meta 2024-2025年基准数据
-└── test_cases/             # 测试用例定义
+sec_data_fetcher/              # 底层模块：数据获取
+├── __init__.py                # 包初始化
+├── config.py                  # 配置文件（API端点、指标映射等）
+├── client.py                  # SEC API客户端
+├── ticker_mapper.py           # 股票代码↔CIK映射器
+├── data_extractor.py          # 财报数据提取器（包含智能匹配逻辑）
+├── time_processor.py          # 时间范围处理器
+├── csv_exporter.py            # CSV导出器
+├── main.py                    # 主程序/命令行接口
+├── test.py                    # 测试脚本
+└── requirements.txt           # 依赖包列表
+
+tests/                         # 回归测试套件
+├── __init__.py                # 包初始化
+├── config.py                  # 测试配置模块
+├── test_runner.py             # 回归测试运行器
+├── README.md                  # 测试套件文档
+├── fixtures/                  # 基准数据目录
+│   ├── googl_2025_full_year/  # 谷歌2025年全年基准数据
+│   ├── googl_2025_q3/         # 谷歌2025年Q3基准数据
+│   └── meta_2024_2025/        # Meta 2024-2025年基准数据
+└── test_cases/                # 测试用例定义
     ├── googl_2025_full_year.py
     ├── googl_2025_q3.py
     └── meta_2024_2025.py
@@ -64,7 +114,49 @@ tests/                      # 回归测试套件
 
 ## 使用方法
 
-### 命令行接口
+### stock_analyzer 使用方法
+
+#### 命令行接口
+
+```bash
+# 获取核心财务指标（默认10年数据）
+python -m stock_analyzer AAPL
+
+# 获取指定年份的数据
+python -m stock_analyzer MSFT --years 5
+
+# 指定输出目录
+python -m stock_analyzer GOOGL --years 10 --output-dir output
+```
+
+#### Python API
+
+```python
+from stock_analyzer import StockAnalyzer
+
+# 初始化分析器
+analyzer = StockAnalyzer(output_dir='output')
+
+# 获取财务指标
+result = analyzer.get_financial_indicators(
+    ticker='AAPL',
+    years=10
+)
+
+# 导出为CSV
+output_file = analyzer.export_to_csv(
+    ticker='AAPL',
+    indicators=result['indicators']
+)
+
+print(f"公司: {result['company_name']}")
+print(f"分析年份: {result['years']}")
+print(f"输出文件: {output_file}")
+```
+
+### sec_data_fetcher 使用方法
+
+#### 命令行接口
 
 ```bash
 # 获取特定年份数据
@@ -103,7 +195,7 @@ python -m sec_data_fetcher.main stats
 python -m sec_data_fetcher.main clear-cache
 ```
 
-### Python API
+#### Python API
 
 ```python
 from sec_data_fetcher import SECDataFetcher
@@ -149,32 +241,65 @@ stats = extractor.get_mapping_stats()
 available_indicators = extractor.get_available_indicators('GOOG')
 ```
 
-## 输出文件
+## stock_analyzer 输出文件
+
+### 财务指标CSV文件
+
+对于每个请求，`stock_analyzer` 会生成一个财务指标汇总文件：
+
+- `{TICKER}_financial_indicators.csv` - 核心财务指标汇总
+
+### 指标列说明
+
+| 列名 | 说明 | 单位 |
+|------|------|------|
+| 营业收入 | 年度营业收入 | 亿美元 |
+| 营收同比 | 营业收入同比增长率 | % |
+| 归母净利 | 归属于母公司净利润 | 亿美元 |
+| 归母净利润同比 | 净利润同比增长率 | % |
+| 毛利率 | 毛利润/营业收入 | % |
+| 运营利润率 | 营业利润/营业收入 | % |
+| 净利率 | 净利润/营业收入 | % |
+| ROE | 净资产收益率 = 净利润/股东权益 | % |
+| ROA | 总资产收益率 = 净利润/总资产 | % |
+| 净现比 | 经营现金流/净利润 | 倍 |
+| 经营净现金流 | 经营活动产生的现金流量净额 | 亿美元 |
+| 资本开支 | CapEx，资本性支出 | 亿美元 |
+| 自由现金流 | 经营现金流 - CapEx | 亿美元 |
+| 股东回报 | 分红 + 股票回购 | 亿美元 |
+| 有息负债 | 短期借款 + 长期借款 | 亿美元 |
+
+## sec_data_fetcher 输出文件
 
 对于每个请求，工具会生成：
 
 ### 1. 标准格式CSV文件
+
 - `{TICKER}_{YEAR}_Balance_Sheet.csv` - 资产负债表
 - `{TICKER}_{YEAR}_Income_Statement.csv` - 利润表
 - `{TICKER}_{YEAR}_Cash_Flow.csv` - 现金流量表
 
 ### 2. 透视表格式CSV文件（使用 `--pivot` 参数时）
+
 - `{TICKER}_{YEAR}_Balance_Sheet_Pivot.csv` - 资产负债表透视表
 - `{TICKER}_{YEAR}_Income_Statement_Pivot.csv` - 利润表透视表
 - `{TICKER}_{YEAR}_Cash_Flow_Pivot.csv` - 现金流量表透视表
 
 **透视表格式特点**：
+
 - **列**：年份/季度（从左到右，由远及近）
 - **行**：指标（使用简洁财报命名）
 - **值**：数值（千分位分隔符，EPS保持2位小数）
 - **数据去重**：同一指标同一期间取最新filed日期的记录
 
 ### 3. 汇总报告
+
 - `{TICKER}_export_summary.txt` - 导出汇总信息
 
 ## 支持的GAAP指标
 
 ### 资产负债表
+
 - Assets（资产）
 - Liabilities（负债）
 - StockholdersEquity（股东权益）
@@ -184,6 +309,7 @@ available_indicators = extractor.get_available_indicators('GOOG')
 - 等15个核心指标
 
 ### 利润表
+
 - RevenueFromContractWithCustomerExcludingAssessedTax（收入）
 - NetIncomeLoss（净利润）
 - GrossProfit（毛利润）
@@ -198,6 +324,7 @@ available_indicators = extractor.get_available_indicators('GOOG')
 - 等13个核心指标
 
 ### 现金流量表
+
 - NetCashProvidedByUsedInOperatingActivities（经营活动现金流）
 - NetCashProvidedByUsedInInvestingActivities（投资活动现金流）
 - NetCashProvidedByUsedInFinancingActivities（融资活动现金流）
@@ -206,17 +333,20 @@ available_indicators = extractor.get_available_indicators('GOOG')
 ## 智能指标匹配系统
 
 ### 解决的问题
+
 1. **时间数据混乱**：修复了年度数据和季度数据混合的问题
 2. **重复数据**：解决了多个配置指标匹配到同一个SEC指标的问题
 3. **指标缺失**：改进了指标匹配逻辑，提高指标发现率
 
 ### 匹配策略
+
 1. **精确匹配**：直接匹配配置的指标名称
 2. **别名映射**：支持指标别名（如"Revenues"映射到"RevenueFromContractWithCustomerExcludingAssessedTax"）
 3. **部分匹配**：支持包含关系的匹配
 4. **基于单词的相似度匹配**：通过共同单词数量进行匹配
 
 ### 数据去重
+
 当多个配置指标匹配到同一个实际SEC指标时，系统会自动去重，只保留第一个匹配的指标。
 
 ## 配置说明
@@ -233,26 +363,38 @@ available_indicators = extractor.get_available_indicators('GOOG')
 ## 常见问题与解决方案
 
 ### 1. 季度数据混入年度数据
+
 **问题**：获取年度数据时混入了季度数据
+
 **解决方案**：系统已修复时间过滤逻辑，确保只返回年度数据
 
 ### 2. 重复数据行
+
 **问题**：同一指标出现多次
+
 **解决方案**：添加了数据去重机制，基于(日期, 实际指标, 值, Frame)进行去重
 
 ### 3. 指标名称不匹配
+
 **问题**：不同公司使用不同的指标名称
+
 **解决方案**：使用智能指标匹配系统，支持多种匹配策略
 
 ### 4. 单季度与累计数据混合
+
 **问题**：SEC API同时返回单季度数据（Three Months Ended）和截至该季度的累计数据（Nine Months Ended），导致每个指标都有双份
+
 **解决方案**：使用 `--accumulated` 开关参数控制数据选择：
+
 - 默认（不加参数）：仅输出单季度数据（Frame列包含季度标识，如CY2025Q3）
 - 添加 `--accumulated` 参数：仅输出累计数据（Frame列为空）
 
 ### 5. 特定指标缺失
+
 **问题**：某些公司可能没有标准的指标名称
+
 **解决方案**：
+
 - 使用指标发现工具查找实际可用指标
 - 添加自定义指标别名
 - 使用部分匹配或基于单词的匹配
@@ -286,6 +428,7 @@ python sec_data_fetcher/test.py
 ```
 
 测试包括：
+
 - 股票代码映射测试
 - 单年份数据获取测试
 - 单季度数据获取测试
@@ -327,8 +470,9 @@ python tests/test_runner.py --all --generate-report
 ### 测试用例配置
 
 回归测试套件支持多种测试场景：
+
 - **单一年份测试**：如谷歌2025年全年财报数据测试
-- **单季度测试**：如谷歌2025年Q3财报数据测试  
+- **单季度测试**：如谷歌2025年Q3财报数据测试
 - **年份范围测试**：如Meta 2024-2025年财报数据测试
 
 ### 开发流程建议
@@ -377,7 +521,20 @@ python -m sec_data_fetcher.main fetch AAPL --year 2023
 
 ## 更新日志
 
+### 2026-03-14 新增 stock_analyzer
+
+1. **新增 stock_analyzer 模块**：基于 sec_data_fetcher 的上层财务指标分析应用
+   - 自动计算核心财务指标（营收、净利润、毛利率、ROE、ROA等）
+   - 同比增长率分析
+   - 自由现金流、股东回报等衍生指标计算
+   - 中文列名CSV输出，便于阅读
+
+2. **项目架构调整**：采用分层架构设计
+   - sec_data_fetcher：底层数据获取层
+   - stock_analyzer：上层财务指标分析层
+
 ### 2026-03-06 v0.1.1-alpha 重要更新
+
 1. **透视表导出功能**：新增 `--pivot` 命令行参数，支持导出为透视表格式
    - 列：年份/季度（从左到右，由远及近）
    - 行：指标（使用简洁财报命名）
@@ -394,6 +551,7 @@ python -m sec_data_fetcher.main fetch AAPL --year 2023
 6. **数据去重优化**：透视表数据去重逻辑，同一指标同一期间取最新filed日期的记录
 
 ### 2026-03-01 重要更新
+
 1. **添加累计数据开关**：新增 `--accumulated` 命令行参数，支持选择单季度数据或累计数据
 2. **修复时间过滤问题**：确保年度数据不混入季度数据
 3. **添加数据去重机制**：避免重复数据行
@@ -402,6 +560,7 @@ python -m sec_data_fetcher.main fetch AAPL --year 2023
 6. **优化错误处理**：提供更详细的错误信息和调试信息
 
 ### 2026-02-23 重要更新
+
 1. **修复时间过滤问题**：确保年度数据不混入季度数据
 2. **添加数据去重机制**：避免重复数据行
 3. **改进指标匹配系统**：支持别名映射、部分匹配和基于单词的匹配
