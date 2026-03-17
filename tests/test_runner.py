@@ -17,14 +17,18 @@ from datetime import datetime
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from tests.config import (
-    TestCase, TestConfig, ValidationResult,
+    TestCase, TestConfig, ValidationResult, TEST_MODULES,
     TEST_CASES_DIR, FIXTURES_DIR, OUTPUT_DIR,
     validate_file_exists, validate_file_size, validate_csv_structure,
-    validate_row_count, validate_key_indicator, DEFAULT_VALIDATORS
+    validate_row_count, validate_key_indicator, DEFAULT_VALIDATORS,
+    STOCK_ANALYZER_VALIDATORS, validate_indicator_file_exact_match
 )
 
 # 导入真实数据提取器
 from sec_data_fetcher.main import SECDataFetcher
+
+# 导入 stock_analyzer
+from stock_analyzer.analyzer import StockAnalyzer
 
 
 def safe_print(text: str):
@@ -54,35 +58,54 @@ class TestRunner:
         # 确保输出目录存在
         OUTPUT_DIR.mkdir(exist_ok=True)
     
-    def discover_test_cases(self) -> List[TestCase]:
-        """自动发现所有测试用例"""
+    def discover_test_cases(self, module_filter: Optional[str] = None) -> List[TestCase]:
+        """
+        自动发现所有测试用例
+        
+        Args:
+            module_filter: 可选的模块过滤（如 "stock_analyzer", "sec_data_fetcher"）
+        """
         test_cases = []
         
-        for filepath in TEST_CASES_DIR.glob("*.py"):
-            if filepath.name == "__init__.py":
+        # 如果指定了模块过滤，只扫描对应目录
+        if module_filter:
+            module_dirs = [module_filter]
+        else:
+            # 否则扫描所有子目录
+            module_dirs = TEST_MODULES
+        
+        for module_dir in module_dirs:
+            test_cases_dir = TEST_CASES_DIR / module_dir
+            
+            if not test_cases_dir.exists():
                 continue
             
-            try:
-                # 动态导入测试用例模块
-                module_name = f"tests.test_cases.{filepath.stem}"
-                module = importlib.import_module(module_name)
+            # 扫描该模块下的所有 .py 文件
+            for filepath in test_cases_dir.glob("*.py"):
+                if filepath.name == "__init__.py":
+                    continue
                 
-                # 获取测试用例对象
-                if hasattr(module, 'test_case'):
-                    test_case = module.test_case
-                    if isinstance(test_case, TestCase):
-                        test_cases.append(test_case)
-                        if self.verbose:
-                            safe_print(f"发现测试用例: {test_case.name} - {test_case.description}")
-                    else:
-                        safe_print(f"警告: {filepath.name} 中的 test_case 不是 TestCase 类型")
-                else:
-                    safe_print(f"警告: {filepath.name} 中没有找到 test_case 变量")
+                try:
+                    # 动态导入测试用例模块
+                    module_name = f"tests.test_cases.{module_dir}.{filepath.stem}"
+                    module = importlib.import_module(module_name)
                     
-            except Exception as e:
-                safe_print(f"加载测试用例 {filepath.name} 失败: {e}")
-                if self.verbose:
-                    traceback.print_exc()
+                    # 获取测试用例对象
+                    if hasattr(module, 'test_case'):
+                        test_case = module.test_case
+                        if isinstance(test_case, TestCase):
+                            test_cases.append(test_case)
+                            if self.verbose:
+                                safe_print(f"发现测试用例 [{module_dir}]: {test_case.name} - {test_case.description}")
+                        else:
+                            safe_print(f"警告: {filepath.name} 中的 test_case 不是 TestCase 类型")
+                    else:
+                        safe_print(f"警告: {filepath.name} 中没有找到 test_case 变量")
+                        
+                except Exception as e:
+                    safe_print(f"加载测试用例 {filepath.name} 失败: {e}")
+                    if self.verbose:
+                        traceback.print_exc()
         
         return test_cases
     
@@ -110,24 +133,12 @@ class TestRunner:
                 case_results["message"] = "基准数据目录不存在"
                 return case_results
             
-            # 2. 运行SEC财务数据提取器
-            # 显示更详细的时间参数信息
-            time_info = f"{test_case.ticker} "
-            if test_case.start_year is not None and test_case.end_year is not None:
-                time_info += f"{test_case.start_year}-{test_case.end_year}"
-                if test_case.start_quarter is not None and test_case.end_quarter is not None:
-                    time_info += f" Q{test_case.start_quarter}-Q{test_case.end_quarter}"
-            elif test_case.year is not None:
-                time_info += f"{test_case.year}"
-                if test_case.quarter is not None:
-                    time_info += f" Q{test_case.quarter}"
-                else:
-                    time_info += " 全年"
-            
-            safe_print(f"执行数据提取: {time_info}")
-            
-            # 调用真实的数据提取器
-            self._extract_real_data(test_case)
+            # 2. 根据 test_type 调用不同的数据提取器
+            if test_case.test_type == "stock_analyzer":
+                self._run_stock_analyzer(test_case)
+            else:
+                # 默认调用 SEC 数据提取器
+                self._extract_real_data(test_case)
             
             # 3. 运行验证
             validation_results = self._run_validations(test_case)
@@ -161,8 +172,8 @@ class TestRunner:
         """使用真实SEC API提取数据"""
         safe_print("[INFO] 开始从SEC API提取真实数据...")
         
-        # 创建输出目录
-        test_case.output_dir.mkdir(exist_ok=True)
+        # 创建输出目录（创建所有必要的父目录）
+        test_case.output_dir.mkdir(parents=True, exist_ok=True)
         
         # 创建数据提取器实例
         extractor = SECDataFetcher()
@@ -238,9 +249,44 @@ class TestRunner:
         
         return file_mapping
     
+    def _run_stock_analyzer(self, test_case: TestCase):
+        """运行 stock_analyzer 生成财务指标"""
+        safe_print("[INFO] 开始运行 stock_analyzer...")
+        
+        # 创建输出目录（创建所有必要的父目录）
+        test_case.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 创建 stock_analyzer 实例
+        analyzer = StockAnalyzer(output_dir=str(test_case.output_dir))
+        
+        # 计算年份范围
+        years = test_case.end_year - test_case.start_year + 1 if test_case.start_year and test_case.end_year else 10
+        
+        # 获取财务指标
+        result = analyzer.get_financial_indicators(
+            ticker=test_case.ticker,
+            years=years
+        )
+        
+        # 导出到CSV
+        output_file = analyzer.export_to_csv(
+            ticker=test_case.ticker,
+            indicators=result['indicators']
+        )
+        
+        safe_print(f"[INFO] stock_analyzer 完成: {output_file}")
+        
+        return result
+    
     def _run_validations(self, test_case: TestCase) -> List[Dict[str, Any]]:
         """运行所有验证"""
         validation_results = []
+        
+        # 根据 test_type 选择验证器
+        if test_case.test_type == "stock_analyzer":
+            validators_to_use = test_case.custom_validators if test_case.custom_validators else STOCK_ANALYZER_VALIDATORS
+        else:
+            validators_to_use = test_case.custom_validators if test_case.custom_validators else DEFAULT_VALIDATORS
         
         # 对每个预期文件运行验证
         for filename in test_case.expected_files:
@@ -251,13 +297,13 @@ class TestRunner:
             safe_print(f"  基准文件: {expected_file}")
             safe_print(f"  输出文件: {output_file}")
             
-            # 运行验证器（使用测试用例的自定义验证器，如果提供了的话）
-            validators_to_use = test_case.custom_validators if test_case.custom_validators else DEFAULT_VALIDATORS
-            
             for validator in validators_to_use:
                 if validator == validate_csv_structure:
                     result = validator(output_file, TestConfig.REQUIRED_COLUMNS)
                 elif validator == validate_row_count:
+                    result = validator(output_file, expected_file)
+                elif validator == validate_indicator_file_exact_match:
+                    # stock_analyzer 专用：完全匹配验证
                     result = validator(output_file, expected_file)
                 else:
                     result = validator(output_file)
@@ -273,43 +319,51 @@ class TestRunner:
                 status = "[PASS]" if result.success else "[FAIL]"
                 safe_print(f"  {status} {validator.__name__}: {result.message}")
             
-            # 运行关键指标验证（只在相关文件中验证相关指标）
-            file_type = test_case.get_file_type(filename)
-            
-            # 根据文件类型确定应该验证哪些指标
-            indicators_to_check = []
-            for indicator in test_case.key_indicators:
-                # 检查指标是否属于当前文件类型
-                if file_type == "balance_sheet" and indicator in TestConfig.KEY_INDICATORS["balance_sheet"]:
-                    indicators_to_check.append(indicator)
-                elif file_type == "income_statement" and indicator in TestConfig.KEY_INDICATORS["income_statement"]:
-                    indicators_to_check.append(indicator)
-                elif file_type == "cash_flow" and indicator in TestConfig.KEY_INDICATORS["cash_flow"]:
-                    indicators_to_check.append(indicator)
-            
-            # 验证相关指标
-            for indicator_name in indicators_to_check:
-                result = validate_key_indicator(output_file, expected_file, indicator_name)
-                validation_results.append({
-                    "validator": "validate_key_indicator",
-                    "file": filename,
-                    "indicator": indicator_name,
-                    "result": result,
-                    "success": result.success,
-                    "message": str(result)
-                })
+            # 只对 sec_data_fetcher 运行关键指标验证
+            if test_case.test_type != "stock_analyzer":
+                # 运行关键指标验证（只在相关文件中验证相关指标）
+                file_type = test_case.get_file_type(filename)
                 
-                status = "[PASS]" if result.success else "[FAIL]"
-                safe_print(f"  {status} 关键指标 {indicator_name}: {result.message}")
+                # 根据文件类型确定应该验证哪些指标
+                indicators_to_check = []
+                for indicator in test_case.key_indicators:
+                    # 检查指标是否属于当前文件类型
+                    if file_type == "balance_sheet" and indicator in TestConfig.KEY_INDICATORS["balance_sheet"]:
+                        indicators_to_check.append(indicator)
+                    elif file_type == "income_statement" and indicator in TestConfig.KEY_INDICATORS["income_statement"]:
+                        indicators_to_check.append(indicator)
+                    elif file_type == "cash_flow" and indicator in TestConfig.KEY_INDICATORS["cash_flow"]:
+                        indicators_to_check.append(indicator)
+                
+                # 验证相关指标
+                for indicator_name in indicators_to_check:
+                    result = validate_key_indicator(output_file, expected_file, indicator_name)
+                    validation_results.append({
+                        "validator": "validate_key_indicator",
+                        "file": filename,
+                        "indicator": indicator_name,
+                        "result": result,
+                        "success": result.success,
+                        "message": str(result)
+                    })
+                    
+                    status = "[PASS]" if result.success else "[FAIL]"
+                    safe_print(f"  {status} 关键指标 {indicator_name}: {result.message}")
         
         return validation_results
     
-    def run_all_tests(self, specific_case: Optional[str] = None) -> bool:
-        """运行所有测试"""
+    def run_all_tests(self, specific_case: Optional[str] = None, module_filter: Optional[str] = None) -> bool:
+        """
+        运行所有测试
+        
+        Args:
+            specific_case: 只运行指定名称的测试用例
+            module_filter: 只运行指定模块的测试用例（如 "stock_analyzer"）
+        """
         self.start_time = time.time()
         
-        # 发现测试用例
-        self.test_cases = self.discover_test_cases()
+        # 发现测试用例（可按模块过滤）
+        self.test_cases = self.discover_test_cases(module_filter=module_filter)
         
         if not self.test_cases:
             safe_print("未发现任何测试用例")
@@ -384,9 +438,11 @@ class TestRunner:
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="SEC财务数据回归测试运行器")
+    parser = argparse.ArgumentParser(description="财务数据回归测试运行器")
     parser.add_argument("--test-case", type=str, help="运行特定测试用例")
     parser.add_argument("--all", action="store_true", help="运行所有测试用例")
+    parser.add_argument("--module", type=str, choices=TEST_MODULES, 
+                       help="指定模块进行测试 (sec_data_fetcher | stock_analyzer)")
     parser.add_argument("--verbose", action="store_true", help="显示详细输出")
     parser.add_argument("--generate-report", action="store_true", help="生成HTML报告")
     
@@ -401,9 +457,9 @@ def main():
     
     # 运行测试
     if args.all:
-        success = runner.run_all_tests()
+        success = runner.run_all_tests(module_filter=args.module)
     else:
-        success = runner.run_all_tests(specific_case=args.test_case)
+        success = runner.run_all_tests(specific_case=args.test_case, module_filter=args.module)
     
     # 返回退出码
     return 0 if success else 1

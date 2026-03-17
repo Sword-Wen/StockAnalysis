@@ -68,6 +68,13 @@ class TestConfig:
     GENERATE_REPORT = False
 
 
+# 支持的测试模块类型
+TEST_MODULES = [
+    "sec_data_fetcher",
+    "stock_analyzer"
+]
+
+
 @dataclass
 class TestCase:
     """
@@ -76,6 +83,7 @@ class TestCase:
     属性:
         name: 测试用例名称（唯一标识符）
         ticker: 股票代码
+        test_type: 测试模块类型（如 sec_data_fetcher, stock_analyzer）
         year: 年份（单一年份模式）
         quarter: 季度（None表示全年）
         start_year: 起始年份（年份范围模式）
@@ -90,6 +98,7 @@ class TestCase:
     """
     name: str
     ticker: str
+    test_type: str = "sec_data_fetcher"  # 默认使用 sec_data_fetcher
     year: Optional[int] = None
     quarter: Optional[int] = None
     start_year: Optional[int] = None
@@ -126,13 +135,13 @@ class TestCase:
     
     @property
     def fixture_dir(self) -> Path:
-        """获取基准数据目录"""
-        return FIXTURES_DIR / self.name
+        """获取基准数据目录（按子模块分类）"""
+        return FIXTURES_DIR / self.test_type / self.name
     
     @property
     def output_dir(self) -> Path:
         """获取输出目录"""
-        return OUTPUT_DIR / self.name
+        return OUTPUT_DIR / self.test_type / self.name
     
     def get_expected_file_path(self, filename: str) -> Path:
         """获取基准文件路径"""
@@ -344,4 +353,125 @@ DEFAULT_VALIDATORS = [
     validate_file_size,
     validate_csv_structure,
     validate_row_count
+]
+
+
+# ============ stock_analyzer 专用验证器 ============
+
+def validate_indicator_file_structure(filepath: Path) -> ValidationResult:
+    """
+    验证财务指标文件结构（stock_analyzer 专用）
+    验证列：指标, 2017, 2018, ... 等年份列
+    """
+    import csv
+    
+    if not filepath.exists():
+        return ValidationResult.failure(f"文件不存在: {filepath.name}")
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8-sig') as f:
+            reader = csv.reader(f)
+            headers = next(reader)
+            
+            # 验证第一列必须是"指标"
+            if not headers or headers[0] != "指标":
+                return ValidationResult.failure(
+                    f"第一列必须是'指标'，实际为: {headers[0] if headers else '空'}",
+                    {"headers": headers}
+                )
+            
+            # 验证至少有"指标"列和一年份数据列
+            if len(headers) < 2:
+                return ValidationResult.failure(
+                    f"列数不足，至少需要'指标'列和年份列",
+                    {"headers": headers}
+                )
+            
+            return ValidationResult.success(
+                f"财务指标文件结构正确: {len(headers)}列",
+                {"headers": headers, "total_columns": len(headers)}
+            )
+    except Exception as e:
+        return ValidationResult.failure(f"读取CSV文件失败: {e}")
+
+
+def validate_indicator_file_exact_match(output_file: Path, expected_file: Path) -> ValidationResult:
+    """
+    验证财务指标文件完全匹配（stock_analyzer 专用）
+    比较输出文件和基准文件的每个单元格
+    """
+    import csv
+    
+    if not output_file.exists():
+        return ValidationResult.failure(f"输出文件不存在: {output_file.name}")
+    
+    if not expected_file.exists():
+        return ValidationResult.failure(f"基准文件不存在: {expected_file.name}")
+    
+    try:
+        # 读取两个文件
+        with open(output_file, 'r', encoding='utf-8-sig') as f:
+            output_data = list(csv.reader(f))
+        
+        with open(expected_file, 'r', encoding='utf-8-sig') as f:
+            expected_data = list(csv.reader(f))
+        
+        # 比较行数
+        if len(output_data) != len(expected_data):
+            return ValidationResult.failure(
+                f"行数不匹配: 输出{len(output_data)}行 vs 基准{len(expected_data)}行",
+                {"output_rows": len(output_data), "expected_rows": len(expected_data)}
+            )
+        
+        # 比较每行每列
+        differences = []
+        for row_idx, (output_row, expected_row) in enumerate(zip(output_data, expected_data)):
+            if len(output_row) != len(expected_row):
+                differences.append({
+                    "row": row_idx,
+                    "message": f"列数不匹配: {len(output_row)}列 vs {len(expected_row)}列"
+                })
+                continue
+            
+            for col_idx, (out_val, exp_val) in enumerate(zip(output_row, expected_row)):
+                # 规范化比较：去除首尾空白
+                out_val_norm = out_val.strip()
+                exp_val_norm = exp_val.strip()
+                
+                if out_val_norm != exp_val_norm:
+                    differences.append({
+                        "row": row_idx,
+                        "col": col_idx,
+                        "output": out_val_norm,
+                        "expected": exp_val_norm
+                    })
+        
+        if differences:
+            # 只显示前5个差异
+            sample_diffs = differences[:5]
+            diff_msg = "; ".join([
+                f"行{r['row']}列{r['col']}: '{r['output']}' != '{r['expected']}'" 
+                if 'col' in r else r['message']
+                for r in sample_diffs
+            ])
+            return ValidationResult.failure(
+                f"存在{len(differences)}处不匹配: {diff_msg}",
+                {"total_differences": len(differences), "sample": sample_diffs}
+            )
+        
+        return ValidationResult.success(
+            f"财务指标完全匹配: {len(output_data)}行 x {len(output_data[0])}列",
+            {"rows": len(output_data), "columns": len(output_data[0])}
+        )
+        
+    except Exception as e:
+        return ValidationResult.failure(f"验证失败: {e}")
+
+
+# stock_analyzer 默认验证器
+STOCK_ANALYZER_VALIDATORS = [
+    validate_file_exists,
+    validate_file_size,
+    validate_indicator_file_structure,
+    validate_indicator_file_exact_match
 ]
