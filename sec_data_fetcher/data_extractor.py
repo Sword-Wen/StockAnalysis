@@ -283,9 +283,12 @@ class DataExtractor:
     def _deduplicate_data_points(self, data_points: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Remove duplicate data points with improved logic:
-        1. For the same date/indicator, prefer FY (annual) data over quarterly data
-        2. Prefer Q4 data over Q1-Q3 data
-        3. Among same type, keep the latest filed date
+        For the same reporting period and indicator, keep the data point with the latest filed date.
+        This ensures we get the most recent revision of the financial data.
+        
+        IMPORTANT: For companies with non-standard fiscal years (like Apple, whose fiscal year ends in September),
+        we need to handle the case where FY data and Q1 data of the next calendar year have the same calendar year.
+        We prioritize FY (annual) data over quarterly data when they fall in the same calendar year.
         
         Args:
             data_points: List of data point dictionaries
@@ -295,20 +298,35 @@ class DataExtractor:
         if not data_points:
             return []
         
-        # Group data points by (date, indicator)
+        # Group data points by (calendar_year, indicator)
         grouped_data = {}
         
         logger.debug(f"Starting deduplication with {len(data_points)} data points")
         
         for point in data_points:
-            date = point.get('end', '')
+            end_date = point.get('end', '')
             indicator = point.get('indicator', '')
+            fy = point.get('fy', '')  # Fiscal year
             fp = point.get('fp', '')  # Fiscal period (FY, Q1, Q2, Q3, Q4)
-            frame = point.get('frame', '')
             filed_date = point.get('filed', '')
             
-            # Create a grouping key: (date, indicator)
-            group_key = (date, indicator)
+            # Extract calendar year from end date
+            calendar_year = None
+            if end_date:
+                try:
+                    calendar_year = int(end_date[:4])
+                except (ValueError, IndexError):
+                    pass
+            
+            if calendar_year is None:
+                logger.debug(f"  Skipping: {indicator} at {end_date} - no valid calendar year from end date")
+                continue
+            
+            # Create grouping key: (calendar_year, indicator)
+            # We don't use fy in the group key because SEC API can return data with same end date but different fy values
+            # e.g., Apple FY2024 (ends 2024-09-28) may have fy=2024 and fy=2025 in different records
+            # We handle this by prioritizing FY data over quarterly data when they have the same calendar year
+            group_key = (calendar_year, indicator)
             
             # Parse filed date for comparison
             try:
@@ -316,90 +334,57 @@ class DataExtractor:
             except (ValueError, KeyError):
                 filed_datetime = None
             
-            # Determine data point priority
-            # Priority order: FY (annual) > Q4 > Q3 > Q2 > Q1 > others
-            if fp == 'FY':
-                priority = 1  # Highest priority - annual data
-            elif fp == 'Q4':
-                priority = 2  # Q4 data (year-end quarterly)
-            elif fp == 'Q3':
-                priority = 3
-            elif fp == 'Q2':
-                priority = 4
-            elif fp == 'Q1':
-                priority = 5
-            else:
-                priority = 6  # Other/unknown
+            # Check if new point is FY (annual) data - annual data takes priority
+            is_new_fy = (fp == 'FY')
             
-            # Also check frame for Q4 indication
-            if frame and 'Q4' in frame:
-                priority = min(priority, 2)  # Q4 frame has high priority
-            
-            # If this group already has an entry, decide which one to keep
             if group_key in grouped_data:
                 existing_point = grouped_data[group_key]
-                existing_fp = existing_point.get('fp', '')
-                existing_frame = existing_point.get('frame', '')
                 existing_filed = existing_point.get('filed', '')
+                existing_end = existing_point.get('end', '')
+                existing_fp = existing_point.get('fp', '')
+                is_existing_fy = (existing_fp == 'FY')
                 
-                # Determine existing point priority
-                if existing_fp == 'FY':
-                    existing_priority = 1
-                elif existing_fp == 'Q4':
-                    existing_priority = 2
-                elif existing_fp == 'Q3':
-                    existing_priority = 3
-                elif existing_fp == 'Q2':
-                    existing_priority = 4
-                elif existing_fp == 'Q1':
-                    existing_priority = 5
-                else:
-                    existing_priority = 6
+                # Priority decision:
+                # 1. If new is FY and existing is not FY, always replace (annual > quarterly)
+                # 2. If existing is FY and new is not FY, keep existing (annual > quarterly)
+                # 3. If both are same type (both FY or both quarterly), use filed date
+                if is_new_fy and not is_existing_fy:
+                    grouped_data[group_key] = point
+                    logger.debug(f"  Replacing: CY:{calendar_year}, {indicator} at {end_date} - FY data takes priority over quarterly")
+                    continue
+                elif is_existing_fy and not is_new_fy:
+                    logger.debug(f"  Keeping existing: CY:{calendar_year}, {indicator} at {existing_end} - existing is FY, new is quarterly")
+                    continue
                 
-                # Also check frame for Q4 indication
-                if existing_frame and 'Q4' in existing_frame:
-                    existing_priority = min(existing_priority, 2)
-                
-                # Parse existing filed date
+                # Both are same type - use filed date for decision
                 try:
                     existing_filed_datetime = TimeProcessor.parse_date(existing_filed) if existing_filed else None
                 except (ValueError, KeyError):
                     existing_filed_datetime = None
                 
-                # Decision logic:
-                # 1. Higher priority data wins (FY > Q4 > Q3 > Q2 > Q1 > others)
-                # 2. If same priority, keep the one with later filed date
-                # 3. If same priority and no filed date, keep the first one
-                
-                if priority < existing_priority:
-                    # New point has higher priority (lower number = higher priority)
-                    grouped_data[group_key] = point
-                    logger.debug(f"  Replacing: {indicator} at {date} - higher priority: {fp}({priority}) > {existing_fp}({existing_priority})")
-                elif priority > existing_priority:
-                    # Existing point has higher priority, keep it
-                    logger.debug(f"  Keeping existing: {indicator} at {date} - higher priority: {existing_fp}({existing_priority}) > {fp}({priority})")
-                else:
-                    # Same priority, compare filed dates
-                    if filed_datetime and existing_filed_datetime:
-                        if filed_datetime > existing_filed_datetime:
-                            # New point has later filed date, replace
-                            grouped_data[group_key] = point
-                            logger.debug(f"  Replacing: {indicator} at {date} - same priority, newer filed date: {filed_date} > {existing_filed}")
-                        else:
-                            logger.debug(f"  Keeping existing: {indicator} at {date} - same priority, older filed date: {filed_date} <= {existing_filed}")
-                    elif filed_datetime and not existing_filed_datetime:
-                        # New point has filed date, existing doesn't, replace
+                # Decision: keep the one with later filed date (most recent revision)
+                if filed_datetime and existing_filed_datetime:
+                    if filed_datetime > existing_filed_datetime:
                         grouped_data[group_key] = point
-                        logger.debug(f"  Replacing: {indicator} at {date} - same priority, has filed date: {filed_date}")
+                        logger.debug(f"  Replacing: CY:{calendar_year}, {indicator} at {end_date} - newer filed date: {filed_date} > {existing_filed}")
                     else:
-                        # Keep existing (either both have no filed date or existing is newer)
-                        logger.debug(f"  Keeping existing: {indicator} at {date} - same priority")
+                        logger.debug(f"  Keeping existing: CY:{calendar_year}, {indicator} at {end_date} - older filed date: {filed_date} <= {existing_filed}")
+                elif filed_datetime and not existing_filed_datetime:
+                    grouped_data[group_key] = point
+                    logger.debug(f"  Replacing: CY:{calendar_year}, {indicator} at {end_date} - has filed date: {filed_date}")
+                elif not filed_datetime and existing_filed_datetime:
+                    logger.debug(f"  Keeping existing: CY:{calendar_year}, {indicator} at {end_date} - existing has filed date: {existing_filed}")
+                else:
+                    # Neither has filed date, keep existing (prefer later end date)
+                    if end_date > existing_end:
+                        grouped_data[group_key] = point
+                        logger.debug(f"  Replacing: CY:{calendar_year}, {indicator} at {end_date} - later end date: {end_date} > {existing_end}")
+                    else:
+                        logger.debug(f"  Keeping existing: CY:{calendar_year}, {indicator} at {end_date} - neither has filed date")
             else:
-                # First entry for this group
                 grouped_data[group_key] = point
-                logger.debug(f"  Adding: {indicator} at {date} - fp: {fp}, frame: {frame}, filed: {filed_date}")
+                logger.debug(f"  Adding: CY:{calendar_year}, {indicator} at {end_date}, fp={fp} - filed: {filed_date}")
         
-        # Convert back to list
         deduplicated = list(grouped_data.values())
         
         logger.debug(f"After deduplication: {len(deduplicated)} data points")
@@ -522,14 +507,10 @@ class DataExtractor:
             # Cash flow statement usually only has accumulated data - keep all
             logger.debug(f"Cash flow statement: keeping all {len(filtered_data)} data points (no frame filtering)")
         elif annual_only:
-            # Annual only mode: keep only FY (annual) data
-            annual_data = []
-            for point in filtered_data:
-                fp = point.get('fp', '')
-                if fp == 'FY':
-                    annual_data.append(point)
-            filtered_data = annual_data
-            logger.debug(f"Income statement after annual_only filter: {len(filtered_data)} data points (annual FY data only)")
+            # Annual only mode: we already filtered using TimeProcessor.filter_data_points with annual_only=True
+            # which correctly uses frame to filter annual data
+            # So we don't need additional filtering here - just log the result
+            logger.debug(f"Income statement after annual_only filter: {len(filtered_data)} data points (annual data from TimeProcessor)")
         else:
             # Income statement: filter based on accumulated flag
             if accumulated:
@@ -821,10 +802,13 @@ class DataExtractor:
             }
             
             # Parse date for additional fields
+            # IMPORTANT: Use calendar year (from end date) as 'Year' column for grouping
+            # This is more reliable than using SEC API's 'fy' field which can be inconsistent
             date_str = data_point.get('end', '')
             if date_str:
                 try:
                     date_obj = TimeProcessor.parse_date(date_str)
+                    # Use calendar year from end date for grouping
                     formatted_point['Year'] = date_obj.year
                     formatted_point['Month'] = date_obj.month
                     formatted_point['Day'] = date_obj.day

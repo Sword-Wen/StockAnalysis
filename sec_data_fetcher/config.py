@@ -35,6 +35,7 @@ GAAP_INDICATORS = {
         "Assets",
         # Liabilities (current then non-current)
         # 流动负债 - 按流动性排序
+        "CommercialPaper",  # 商业票据（苹果等公司使用）
         "ShortTermBorrowingsDebt",  # 短期借款（有息）
         "LongTermDebtCurrent",      # 一年内到期的非流动负债
         "AccountsPayableCurrent",   # 应付账款

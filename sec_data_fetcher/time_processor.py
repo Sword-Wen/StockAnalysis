@@ -57,16 +57,23 @@ class TimeProcessor:
         data_points: List[Dict[str, Any]],
         year: Optional[int] = None,
         start_year: Optional[int] = None,
-        end_year: Optional[int] = None
+        end_year: Optional[int] = None,
+        use_fiscal_year: bool = True
     ) -> List[Dict[str, Any]]:
         """
         Filter data points by year or year range
+        
+        IMPORTANT: For annual data with non-standard fiscal years (like Apple whose fiscal year ends in September),
+        we should use calendar year (from end date) instead of fiscal year (fy field) for filtering.
+        This is because SEC API can return multiple fy values for the same data point (e.g., FY2024 ending 2024-09-28
+        may have fy=2024 and fy=2025 in different records), causing confusion.
         
         Args:
             data_points: List of data point dictionaries
             year: Specific year to filter (mutually exclusive with start_year/end_year)
             start_year: Start year for range
             end_year: End year for range
+            use_fiscal_year: If True, use calendar year for filtering (because SEC fy field is unreliable)
             
         Returns:
             Filtered list of data points
@@ -76,12 +83,16 @@ class TimeProcessor:
         
         filtered_points = []
         
+        # Always use calendar year for filtering because SEC API's fy field is unreliable
+        # (same data point can have multiple fy values like fy=2024 and fy=2025)
         for point in data_points:
-            if 'end' not in point:
+            # Use calendar year from end date
+            end_date_str = point.get('end', '')
+            if not end_date_str:
                 continue
             
             try:
-                end_date = TimeProcessor.parse_date(point['end'])
+                end_date = TimeProcessor.parse_date(end_date_str)
                 point_year = end_date.year
                 
                 if year is not None:
@@ -235,6 +246,10 @@ class TimeProcessor:
             if should_apply_annual_filter:
                 # Keep only annual data points (frame indicates annual)
                 annual_data = []
+                
+                # Determine if we are in year range mode (multiple years)
+                is_year_range = (start_year is not None and end_year is not None and year is None)
+                
                 for point in year_filtered:
                     frame = point.get('frame', '')
                     indicator = point.get('indicator', 'Unknown')
@@ -243,38 +258,69 @@ class TimeProcessor:
                     fy = point.get('fy', '')  # Fiscal year
                     
                     # Debug logging
-                    logger.debug(f"Annual filter: {indicator}, frame={frame}, end={end_date}, fp={fp}, fy={fy}, year={year}")
+                    logger.debug(f"Annual filter: {indicator}, frame={frame}, end={end_date}, fp={fp}, fy={fy}, year={year}, is_year_range={is_year_range}")
                     
-                    # Check for annual data points
-                    # 1. End date is Dec 31 (year end)
-                    if end_date and end_date.endswith('12-31'):
-                        logger.debug(f"  Accepted (year end): {indicator}, end={end_date}")
-                        annual_data.append(point)
-                        continue
+                    # Get calendar year from end_date - this is the most reliable way to determine the year
+                    calendar_year = None
+                    if end_date:
+                        try:
+                            calendar_year = int(end_date[:4])
+                        except (ValueError, IndexError):
+                            pass
                     
-                    # 2. Frame indicates annual data
+                    # For year range mode, first check if calendar year is in range
+                    if is_year_range:
+                        if calendar_year is None:
+                            logger.debug(f"  Rejected (no calendar year from end date): {indicator}, end={end_date}")
+                            continue
+                        
+                        if not (start_year <= calendar_year <= end_year):
+                            logger.debug(f"  Rejected (calendar year not in range): {indicator}, calendar_year={calendar_year}, range=[{start_year}, {end_year}]")
+                            continue
+                    
+                    # Check for annual data points - PRIORITY: frame field is most reliable
                     if frame:
                         # Remove 'I' suffix if present (instant)
                         frame_clean = frame.replace('I', '')
-                        # Debug logging for frame analysis
-                        logger.debug(f"  Frame analysis: {frame} -> {frame_clean}, ends with Q4={frame_clean.endswith('Q4')}, CY{year}={frame_clean == f'CY{year}'}")
-                        # Check if it's annual: either just CY{year} or ends with Q4
-                        if frame_clean == f'CY{year}' or frame_clean.endswith('Q4'):
-                            logger.debug(f"  Accepted (annual frame): {indicator}, frame_clean={frame_clean}")
-                            annual_data.append(point)
+                        
+                        if is_year_range:
+                            # Year range mode: check if frame indicates annual data
+                            # Check if it's an annual frame (CY{year} or CY{year}Q4)
+                            if frame_clean == f'CY{calendar_year}' or frame_clean == f'CY{calendar_year}Q4':
+                                logger.debug(f"  Accepted (annual frame in range): {indicator}, frame_clean={frame_clean}, calendar_year={calendar_year}")
+                                annual_data.append(point)
+                                continue
+                            
+                            # Frame exists but doesn't match annual pattern - reject
+                            logger.debug(f"  Rejected (frame doesn't match annual pattern): {indicator}, frame={frame}")
+                            continue
+                        else:
+                            # Single year mode: use original logic
+                            # Check if frame exactly matches CY{year}
+                            if frame_clean == f'CY{year}':
+                                logger.debug(f"  Accepted (annual frame CY{year}): {indicator}, frame_clean={frame_clean}")
+                                annual_data.append(point)
+                                continue
+                            
+                            # Check if frame matches CY{year}Q4 (e.g., CY2025Q4) - instant annual report (Balance Sheet)
+                            if frame_clean == f'CY{year}Q4':
+                                logger.debug(f"  Accepted (annual instant frame CY{year}Q4): {indicator}, frame_clean={frame_clean}")
+                                annual_data.append(point)
+                                continue
+                            
+                            # If frame exists but doesn't match any annual pattern, reject it
+                            logger.debug(f"  Rejected (frame exists but doesn't match annual pattern): {indicator}, frame={frame}")
                             continue
                     
-                    # 3. Fiscal period is FY (annual)
-                    if fp == 'FY' and (fy == str(year) if year is not None else True):
-                        logger.debug(f"  Accepted (fiscal year): {indicator}, fp={fp}, fy={fy}")
+                    # Fallback: fp=FY indicates annual data
+                    if fp == 'FY':
+                        logger.debug(f"  Accepted (fiscal year, no frame): {indicator}, fp={fp}, fy={fy}")
                         annual_data.append(point)
                         continue
                     
-                    # 4. Frame is exactly the year (e.g., '2025')
-                    if frame == str(year) and year is not None:
-                        logger.debug(f"  Accepted (year frame): {indicator}, frame={frame}")
-                        annual_data.append(point)
-                        continue
+                    # NOTE: We no longer accept simply based on end date being 12-31 or frame ends with Q4
+                    # because SEC API sometimes returns incorrect fy values but correct frame values
+                    # Also, frame like CY2024Q4 is a QUARTERLY report (Q4), not annual
                     
                     logger.debug(f"  Rejected (not annual): {indicator}, frame={frame}, end={end_date}, fp={fp}, fy={fy}")
                 logger.debug(f"Annual filter result: {len(annual_data)} data points")

@@ -138,7 +138,10 @@ class StockAnalyzer:
                 if not indicator:
                     continue
                 
-                # Use 'Year' column directly (it's already in the CSV)
+                # Use 'Year' column (calendar year) for grouping, not 'Fiscal Year' column
+                # The 'Fiscal Year' column from SEC API is unreliable for companies with non-standard fiscal years
+                # (like Apple whose fiscal year ends in September)
+                # The 'Year' column is derived from the end date and represents the calendar year
                 year_str = row.get('Year', '')
                 year = None
                 
@@ -248,17 +251,19 @@ class StockAnalyzer:
             'ShareRepurchase': [
                 'PaymentsForRepurchaseOfCommonStock'
             ],
-            # Short-term Debt (only include actual debt instruments, not cash/investments)
+            # Short-term Debt - use CommercialPaper if available, otherwise ShortTermDebt
+            # Only use ONE value, don't sum multiple indicators
             'ShortTermDebt': [
-                'ShortTermBorrowingsDebt',
-                'ShortTermDebt',
-                'CurrentPortionOfLongTermDebt',
-                'LongTermDebtCurrent'
+                'CommercialPaper',              # Commercial Paper (苹果等公司使用)
+                'CommercialPaperObligations',  # Commercial Paper Obligations
+                'ShortTermDebt',                # Short-term debt (汇总)
+                'ShortTermBorrowingsDebt'       # Short-term borrowings (最后fallback)
             ],
-            # Long-term Debt
+            # Long-term Debt - prefer total LongTermDebt, otherwise sum components
             'LongTermDebt': [
-                'LongTermDebtNoncurrent',
-                'LongTermDebt'
+                'LongTermDebt',                 # Long-term debt (汇总)
+                'LongTermDebtNoncurrent',       # Long-term debt non-current
+                'LongTermDebtCurrent'           # Long-term debt current (for summing)
             ],
         }
         
@@ -276,8 +281,10 @@ class StockAnalyzer:
                 'capex': self._find_value(cash_flow_data, indicator_map['CapEx'], year),
                 'dividends': self._find_value(cash_flow_data, indicator_map['Dividends'], year),
                 'share_repurchase': self._find_value(cash_flow_data, indicator_map['ShareRepurchase'], year),
+                # For short-term debt, we use priority lookup (not sum) - take the first available
                 'short_term_debt': self._find_value(balance_data, indicator_map['ShortTermDebt'], year),
-                'long_term_debt': self._find_value(balance_data, indicator_map['LongTermDebt'], year),
+                # For long-term debt, we also need to sum components when total is not available
+                'long_term_debt': self._find_sum(balance_data, indicator_map['LongTermDebt'], year),
             }
         
         # Calculate derived indicators
@@ -423,6 +430,36 @@ class StockAnalyzer:
                 if year in year_data:
                     return year_data[year]
         return None
+    
+    def _find_sum(
+        self,
+        data: Dict[str, Dict[str, Any]],
+        indicator_names: List[str],
+        year: int
+    ) -> Optional[float]:
+        """
+        Find and sum values for a given year from multiple available indicators
+        
+        Args:
+            data: Data dictionary with year keys (integer)
+            indicator_names: List of possible indicator names
+            year: Year to find (integer)
+            
+        Returns:
+            Sum of values or None
+        """
+        total = 0.0
+        found = False
+        
+        for name in indicator_names:
+            if name in data:
+                year_data = data[name]
+                # Try integer key
+                if year in year_data:
+                    total += year_data[year]
+                    found = True
+        
+        return total if found else None
     
     def export_to_csv(
         self,
