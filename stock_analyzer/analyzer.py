@@ -32,22 +32,30 @@ class StockAnalyzer:
     def get_financial_indicators(
         self,
         ticker: str,
-        years: int = 10
+        years: int = 10,
+        start_year: int = None,
+        end_year: int = None
     ) -> Dict[str, Any]:
         """
         Get core financial indicators for the past N years
         
         Args:
             ticker: Stock ticker symbol
-            years: Number of years of historical data
+            years: Number of years of historical data (used if start_year/end_year not provided)
+            start_year: Optional start year (overrides years calculation)
+            end_year: Optional end year (defaults to current year if not provided)
             
         Returns:
             Dictionary containing financial indicators and metadata
         """
         # Calculate year range
         current_year = datetime.now().year
-        end_year = current_year
-        start_year = current_year - years + 1
+        
+        # If start_year/end_year are provided, use them directly
+        if start_year is None:
+            start_year = current_year - years + 1
+        if end_year is None:
+            end_year = current_year
         
         logger.info(f"Fetching financial data for {ticker} from {start_year} to {end_year}")
         

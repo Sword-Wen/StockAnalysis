@@ -259,13 +259,15 @@ class TestRunner:
         # 创建 stock_analyzer 实例
         analyzer = StockAnalyzer(output_dir=str(test_case.output_dir))
         
-        # 计算年份范围
+        # 计算年份范围（用于向后兼容）
         years = test_case.end_year - test_case.start_year + 1 if test_case.start_year and test_case.end_year else 10
         
-        # 获取财务指标
+        # 获取财务指标（传递 start_year 和 end_year 参数）
         result = analyzer.get_financial_indicators(
             ticker=test_case.ticker,
-            years=years
+            years=years,
+            start_year=test_case.start_year,
+            end_year=test_case.end_year
         )
         
         # 导出到CSV
