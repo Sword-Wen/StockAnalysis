@@ -239,6 +239,10 @@ class StockAnalyzer:
             'TotalAssets': [
                 'Assets'
             ],
+            # Total Liabilities (for calculating equity when StockholdersEquity is not available)
+            'TotalLiabilities': [
+                'Liabilities'
+            ],
             # Total Equity
             'TotalEquity': [
                 'StockholdersEquity'
@@ -278,13 +282,28 @@ class StockAnalyzer:
         # Build year data
         year_data = {}
         for year in years:
+            # Get basic values
+            revenue = self._find_value(income_data, indicator_map['Revenue'], year)
+            net_income = self._find_value(income_data, indicator_map['NetIncome'], year)
+            cost_of_goods = self._find_value(income_data, indicator_map['CostOfGoodsSold'], year)
+            operating_income = self._find_value(income_data, indicator_map['OperatingIncome'], year)
+            total_assets = self._find_value(balance_data, indicator_map['TotalAssets'], year)
+            total_liabilities = self._find_value(balance_data, indicator_map['TotalLiabilities'], year)
+            # Try to get equity directly from StockholdersEquity
+            total_equity = self._find_value(balance_data, indicator_map['TotalEquity'], year)
+            # If StockholdersEquity is not available, calculate as Assets - Liabilities
+            # This handles cases like VISA where SEC data doesn't include StockholdersEquity
+            if total_equity is None and total_assets is not None and total_liabilities is not None:
+                total_equity = total_assets - total_liabilities
+                logger.info(f"Calculated equity for {year}: Assets ({total_assets}) - Liabilities ({total_liabilities}) = {total_equity}")
+            
             year_data[year] = {
-                'revenue': self._find_value(income_data, indicator_map['Revenue'], year),
-                'net_income': self._find_value(income_data, indicator_map['NetIncome'], year),
-                'cost_of_goods': self._find_value(income_data, indicator_map['CostOfGoodsSold'], year),
-                'operating_income': self._find_value(income_data, indicator_map['OperatingIncome'], year),
-                'total_assets': self._find_value(balance_data, indicator_map['TotalAssets'], year),
-                'total_equity': self._find_value(balance_data, indicator_map['TotalEquity'], year),
+                'revenue': revenue,
+                'net_income': net_income,
+                'cost_of_goods': cost_of_goods,
+                'operating_income': operating_income,
+                'total_assets': total_assets,
+                'total_equity': total_equity,
                 'operating_cash_flow': self._find_value(cash_flow_data, indicator_map['OperatingCashFlow'], year),
                 'capex': self._find_value(cash_flow_data, indicator_map['CapEx'], year),
                 'dividends': self._find_value(cash_flow_data, indicator_map['Dividends'], year),
