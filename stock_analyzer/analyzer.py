@@ -91,7 +91,41 @@ class StockAnalyzer:
         # Filter to only include requested years and sort (year is integer)
         available_years = sorted([int(y) for y in available_years if str(y).isdigit() and int(y) >= start_year and int(y) <= end_year])
         
-        logger.info(f"Available years: {available_years}")
+        logger.info(f"Available years from annual data: {available_years}")
+        
+        # Check if the end_year has data - if not, we need to get YTD data for incomplete fiscal year
+        # Note: The latest fiscal year's data might be stored under the earlier calendar year
+        # (e.g., FY2026Q1 data is stored under 2025, but we want it to appear in 2026 column)
+        needs_ytd = False
+        if end_year not in available_years:
+            # Check if we have data for the previous year that might be the incomplete fiscal year
+            # For Apple, FY2026Q1 ends in Dec 2025, so data is stored under 2025
+            prev_year = end_year - 1
+            if prev_year in available_years:
+                # The previous year has data - this might be the incomplete fiscal year's data
+                # Let's check if we need to get more recent quarter data
+                needs_ytd = True
+            else:
+                needs_ytd = True
+        
+        if needs_ytd:
+            logger.info(f"Need to fetch YTD data for incomplete fiscal year {end_year}...")
+            
+            # Get YTD data for the incomplete fiscal year
+            ytd_data = self._get_ytd_data_for_incomplete_year(ticker, end_year)
+            
+            # Check if YTD data has valid values before adding
+            if ytd_data and self._ytd_data_has_valid_values(ytd_data):
+                logger.info(f"Found valid YTD data for fiscal year {end_year}")
+                # Merge YTD data into our data dictionaries
+                income_data, balance_data, cash_flow_data = self._merge_ytd_data_as_fiscal_year(
+                    income_data, balance_data, cash_flow_data, ytd_data, end_year
+                )
+                # Add end_year to available years
+                available_years.append(end_year)
+                available_years = sorted(available_years)
+            else:
+                logger.warning(f"No valid YTD data available for fiscal year {end_year}")
         
         if not available_years:
             raise ValueError(f"No financial data found for {ticker}")
@@ -116,6 +150,319 @@ class StockAnalyzer:
             },
             'years': available_years
         }
+    
+    def _ytd_data_has_valid_values(self, ytd_data: Dict[str, Dict[str, Any]]) -> bool:
+        """
+        Check if YTD data contains valid values for key financial indicators.
+        
+        This prevents adding incomplete/empty YTD data to the analysis.
+        Only returns True if we have at least 3 valid non-zero values from key indicators.
+        """
+        if not ytd_data:
+            return False
+        
+        # Key financial indicators that we need for meaningful calculations
+        key_indicator_patterns = [
+            'revenue', 'income', 'profit', 'asset', 'equity', 
+            'cash', 'cost', 'expense', 'liabilit'
+        ]
+        
+        total_valid_values = 0
+        
+        for data_type in ['income', 'balance', 'cash_flow']:
+            if data_type not in ytd_data:
+                continue
+                
+            for indicator_name, year_data in ytd_data[data_type].items():
+                # Check if this is a key indicator
+                indicator_lower = indicator_name.lower()
+                is_key_indicator = any(p in indicator_lower for p in key_indicator_patterns)
+                
+                if is_key_indicator and year_data:
+                    for val in year_data.values():
+                        if val is not None and val != 0:
+                            total_valid_values += 1
+                            # If we found enough valid values, return True
+                            if total_valid_values >= 3:
+                                return True
+        
+        return total_valid_values >= 3
+    
+    def _get_ytd_data_for_incomplete_year(
+        self,
+        ticker: str,
+        fiscal_year: int
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        """
+        Get YTD (Year-To-Date) data for an incomplete fiscal year
+        
+        For the given fiscal year, find the latest quarter's accumulated data
+        and return it as YTD data.
+        
+        Args:
+            ticker: Stock ticker symbol
+            fiscal_year: The incomplete fiscal year (e.g., 2026 for FY2026)
+            
+        Returns:
+            Dictionary with YTD data or None if not available
+        """
+        import tempfile
+        import os
+        
+        # For the incomplete fiscal year, we need to get quarterly data
+        # The fiscal year might span across calendar years (e.g., FY2026 ends in Sept 2026)
+        # We need to get data from the start of the fiscal year to the latest available quarter
+        
+        # Determine the calendar year range for this fiscal year
+        # For companies with fiscal year ending in September (like Apple):
+        # FY2026 = Oct 2025 - Sept 2026, so calendar years are 2025 and 2026
+        # We need to fetch data for the latest available quarter
+        
+        # Try to get quarterly data without annual_only filter
+        # This will give us Q1, Q2, Q3 data (accumulated)
+        temp_output_dir = tempfile.mkdtemp()
+        
+        try:
+            # Fetch quarterly data - get the latest quarter's accumulated data
+            # We'll fetch from the start of the fiscal year to now
+            # For simplicity, let's fetch a range that covers likely quarters
+            
+            # The fiscal year typically ends in Q3 of the calendar year for Apple (Sept)
+            # So for FY2026 (Oct 2025 - Sept 2026), we'd look for Q1 (Dec 2025), Q2 (Mar 2026)
+            
+            # Fetch quarterly data (Q1 to Q4) to get the latest available quarter
+            # Note: We need to explicitly set start_quarter and end_quarter to get quarterly data
+            # because the auto-detection defaults to annual when no quarter params are specified
+            result = self.fetcher.fetch_financial_data(
+                ticker=ticker,
+                start_year=fiscal_year - 1,  # Start from previous calendar year
+                end_year=fiscal_year,  # End at current year
+                output_dir=temp_output_dir,
+                pivot=False,
+                annual_only=False,  # Get quarterly data, not just annual
+                # Explicitly specify quarter range to get quarterly data
+                start_quarter=1,
+                end_quarter=4
+            )
+            
+            # Read the quarterly data
+            income_data = self._read_standard_csv(result['exported_files'].get('income_statement'))
+            balance_data = self._read_standard_csv(result['exported_files'].get('balance_sheet'))
+            cash_flow_data = self._read_standard_csv(result['exported_files'].get('cash_flow'))
+            
+            # Find the latest available quarter's data
+            # We need to look at the date/quarter information in the raw data
+            # For now, let's use the accumulated data from the most recent quarter
+            
+            # Read the raw files to find the latest quarter
+            latest_quarter_data = self._find_latest_quarter_data(
+                result['exported_files'].get('income_statement'),
+                result['exported_files'].get('balance_sheet'),
+                result['exported_files'].get('cash_flow'),
+                fiscal_year
+            )
+            
+            if latest_quarter_data:
+                logger.info(f"Found latest quarter YTD data: {latest_quarter_data}")
+                return latest_quarter_data
+            
+            return None
+            
+        except Exception as e:
+            logger.warning(f"Error fetching YTD data: {e}")
+            return None
+        finally:
+            # Clean up temp directory
+            import shutil
+            if os.path.exists(temp_output_dir):
+                shutil.rmtree(temp_output_dir)
+    
+    def _find_latest_quarter_data(
+        self,
+        income_file: str,
+        balance_file: str,
+        cash_flow_file: str,
+        target_fiscal_year: int
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        """
+        Find the latest quarter's YTD data from CSV files
+        
+        Args:
+            income_file: Path to income statement CSV
+            balance_file: Path to balance sheet CSV
+            cash_flow_file: Path to cash flow CSV
+            target_fiscal_year: The fiscal year we're looking for
+            
+        Returns:
+            Dictionary with YTD data or None
+        """
+        # Read all files and find the latest quarter with accumulated data
+        # We'll use the Quarter column to identify Q1, Q2, Q3 (which are accumulated)
+        
+        latest_data = None
+        latest_quarter = 0  # Track which quarter is the latest
+        
+        for filepath in [income_file, balance_file, cash_flow_file]:
+            if not filepath or not os.path.exists(filepath):
+                continue
+            
+            with open(filepath, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                
+                for row in reader:
+                    quarter = row.get('Quarter', '')
+                    year_str = row.get('Year', '')
+                    
+                    if not quarter or not year_str:
+                        continue
+                    
+                    try:
+                        year = int(year_str)
+                    except ValueError:
+                        continue
+                    
+                    # Extract quarter number
+                    quarter_num = 0
+                    if 'Q1' in quarter:
+                        quarter_num = 1
+                    elif 'Q2' in quarter:
+                        quarter_num = 2
+                    elif 'Q3' in quarter:
+                        quarter_num = 3
+                    elif 'Q4' in quarter:
+                        quarter_num = 4
+                    
+                    # We want the latest quarter that's still < Q4 (accumulated data)
+                    # Or we could use Q4 if it's a partial year
+                    # For now, let's get Q1, Q2, or Q3 (accumulated YTD data)
+                    
+                    if quarter_num > 0 and quarter_num < 4:  # Q1, Q2, Q3
+                        if quarter_num > latest_quarter:
+                            # This is a more recent quarter
+                            if latest_data is None:
+                                latest_data = {'income': {}, 'balance': {}, 'cash_flow': {}}
+                            
+                            # Read this quarter's data
+                            indicator = row.get('Indicator', '')
+                            value_str = row.get('Value', '')
+                            
+                            if indicator and value_str:
+                                try:
+                                    value = float(value_str.replace(',', '').replace('"', ''))
+                                    
+                                    # Determine which dict to update
+                                    if filepath == income_file:
+                                        if indicator not in latest_data['income']:
+                                            latest_data['income'][indicator] = {}
+                                        latest_data['income'][indicator][year] = value
+                                    elif filepath == balance_file:
+                                        if indicator not in latest_data['balance']:
+                                            latest_data['balance'][indicator] = {}
+                                        latest_data['balance'][indicator][year] = value
+                                    elif filepath == cash_flow_file:
+                                        if indicator not in latest_data['cash_flow']:
+                                            latest_data['cash_flow'][indicator] = {}
+                                        latest_data['cash_flow'][indicator][year] = value
+                                    
+                                    latest_quarter = quarter_num
+                                except ValueError:
+                                    continue
+        
+        return latest_data
+    
+    def _merge_ytd_data(
+        self,
+        income_data: Dict[str, Dict[str, Any]],
+        balance_data: Dict[str, Dict[str, Any]],
+        cash_flow_data: Dict[str, Dict[str, Any]],
+        ytd_data: Dict[str, Dict[str, Any]]
+    ) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]:
+        """
+        Merge YTD data into the main data dictionaries
+        
+        Args:
+            income_data: Income statement data
+            balance_data: Balance sheet data
+            cash_flow_data: Cash flow data
+            ytd_data: YTD data to merge
+            
+        Returns:
+            Tuple of merged (income_data, balance_data, cash_flow_data)
+        """
+        # Merge YTD data - the YTD data is keyed by calendar year
+        # For Apple FY2026, Q1 would be in calendar year 2025 (Oct-Dec 2025)
+        
+        if 'income' in ytd_data:
+            for indicator, year_data in ytd_data['income'].items():
+                if indicator not in income_data:
+                    income_data[indicator] = {}
+                for year, value in year_data.items():
+                    income_data[indicator][year] = value
+        
+        if 'balance' in ytd_data:
+            for indicator, year_data in ytd_data['balance'].items():
+                if indicator not in balance_data:
+                    balance_data[indicator] = {}
+                for year, value in year_data.items():
+                    balance_data[indicator][year] = value
+        
+        if 'cash_flow' in ytd_data:
+            for indicator, year_data in ytd_data['cash_flow'].items():
+                if indicator not in cash_flow_data:
+                    cash_flow_data[indicator] = {}
+                for year, value in year_data.items():
+                    cash_flow_data[indicator][year] = value
+        
+        return income_data, balance_data, cash_flow_data
+    
+    def _merge_ytd_data_as_fiscal_year(
+        self,
+        income_data: Dict[str, Dict[str, Any]],
+        balance_data: Dict[str, Dict[str, Any]],
+        cash_flow_data: Dict[str, Dict[str, Any]],
+        ytd_data: Dict[str, Dict[str, Any]],
+        fiscal_year: int
+    ) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]:
+        """
+        Merge YTD data into the main data dictionaries under the fiscal year
+        
+        This method is different from _merge_ytd_data in that it stores the data
+        under the fiscal_year parameter instead of the calendar year.
+        
+        Args:
+            income_data: Income statement data
+            balance_data: Balance sheet data
+            cash_flow_data: Cash flow data
+            ytd_data: YTD data to merge
+            fiscal_year: The fiscal year to store the data under
+            
+        Returns:
+            Tuple of merged (income_data, balance_data, cash_flow_data)
+        """
+        # Merge YTD data under the fiscal year
+        # This is the key difference - we store the data under fiscal_year, not calendar year
+        
+        if 'income' in ytd_data:
+            for indicator, year_data in ytd_data['income'].items():
+                if indicator not in income_data:
+                    income_data[indicator] = {}
+                # Store under fiscal_year instead of the original calendar year
+                income_data[indicator][fiscal_year] = list(year_data.values())[0] if year_data else None
+        
+        if 'balance' in ytd_data:
+            for indicator, year_data in ytd_data['balance'].items():
+                if indicator not in balance_data:
+                    balance_data[indicator] = {}
+                balance_data[indicator][fiscal_year] = list(year_data.values())[0] if year_data else None
+        
+        if 'cash_flow' in ytd_data:
+            for indicator, year_data in ytd_data['cash_flow'].items():
+                if indicator not in cash_flow_data:
+                    cash_flow_data[indicator] = {}
+                cash_flow_data[indicator][fiscal_year] = list(year_data.values())[0] if year_data else None
+        
+        logger.info(f"Merged YTD data under fiscal year {fiscal_year}")
+        return income_data, balance_data, cash_flow_data
     
     def _read_standard_csv(self, filepath: str) -> Dict[str, Dict[str, Any]]:
         """
